@@ -806,6 +806,70 @@ span.cm-avatar:not([style*="--ch"]) { color: var(--soft); }
 .st-composer-bar select { margin-left: auto; padding: 10px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 14px var(--font); }
 .st-composer-img { font-size: 12px; color: var(--muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* Recompensa diaria */
+.coins { position: relative; }
+.coins.has-daily::after { content: ''; position: absolute; top: -2px; right: -6px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+.daily { display: flex; flex-direction: column; gap: 12px; margin: 4px 0 18px; padding: 16px; border-radius: 6px; background: var(--surface-2); }
+.daily-head { display: flex; align-items: baseline; justify-content: space-between; }
+.daily-head b { font-size: 16px; }
+.daily-head span { font-size: 13px; color: var(--muted); }
+.daily-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.daily-day { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; border-radius: 4px; background: #000; }
+.daily-day small { font-size: 10px; color: var(--muted); }
+.daily-day b { display: flex; align-items: center; font-size: 13px; }
+.daily-day b i.coin { margin-right: 2px; }
+.daily-day.done { opacity: .45; }
+.daily-day.today { box-shadow: inset 0 0 0 2px var(--red); }
+.daily .primary { align-self: flex-start; }
+.daily-note { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* Anuncio para desbloquear */
+.ad-btn { margin-top: 8px; min-width: 200px; }
+.ad-row { display: block; width: 100%; margin: -6px 0 18px; text-align: center; font-size: 13px; }
+.ad-row:disabled { opacity: .5; }
+.modal.ad { padding: 0; overflow: hidden; width: min(420px, 100vw); }
+.ad-frame { position: relative; aspect-ratio: 9 / 14; max-height: 82vh; background: #000; }
+.ad-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .75; }
+.ad-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: center; }
+.ad-tag { padding: 4px 8px; border-radius: 3px; background: rgba(0,0,0,.6); font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.ad-count { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,.7); font-weight: 800; font-variant-numeric: tabular-nums; }
+.ad-body { position: absolute; left: 18px; right: 18px; bottom: 64px; display: flex; flex-direction: column; gap: 6px; }
+.ad-body b { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
+.ad-body > span:not(.chip) { font-size: 14px; color: var(--soft); line-height: 1.45; }
+.ad-foot { position: absolute; left: 18px; right: 18px; bottom: 14px; margin: 0; font-size: 11px; color: var(--muted); }
+
+/* Busqueda */
+.search-btn { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: var(--soft); }
+.search-btn svg { width: 20px; height: 20px; }
+.search-btn:hover { color: var(--text); background: rgba(255,255,255,.08); }
+body[data-view="search"] .search-btn { color: var(--text); }
+.search-page { padding: 24px 0 60px; }
+.search-box { display: flex; align-items: center; gap: 10px; margin: 0 var(--pad); padding: 0 16px; border-radius: 6px; background: var(--surface); }
+.search-box svg { width: 20px; height: 20px; flex: none; color: var(--muted); }
+.search-box input { flex: 1; min-width: 0; padding: 16px 0; border: 0; background: none; color: var(--text); font: 600 17px var(--font); outline: none; }
+.search-hint { margin: 22px var(--pad) 12px; color: var(--muted); font-size: 15px; }
+.search-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 var(--pad); }
+.search-tags .ghost { padding: 8px 14px; font-size: 13px; }
+.search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; padding: 0 var(--pad); }
+.search-grid .poster { width: auto; }
+
+/* Top 10 de la semana */
+.top-shelf { gap: 4px; }
+.top-item { display: flex; align-items: flex-end; flex: none; }
+.top-n { align-self: flex-start; margin: 34px -2px 0 6px; font-size: 92px; font-weight: 800; line-height: .8; letter-spacing: -6px; color: #000; -webkit-text-stroke: 2px #6b6b6b; }
+.top-item .poster { position: relative; z-index: 1; }
+@media (max-width: 640px) { .top-n { font-size: 72px; } }
+
+/* Acceso por holders */
+.gate-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 0 var(--pad) 10px; padding: 16px 18px; border-radius: 6px; background: var(--surface); box-shadow: inset 0 0 0 1px #2c2c2c; }
+.gate-text { display: flex; flex-direction: column; gap: 4px; flex: 1 1 280px; }
+.gate-kicker { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #14f195; }
+.gate-text b { font-size: 17px; }
+.gate-text span:not(.gate-kicker) { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.gate-text a { color: var(--soft); text-decoration: underline; }
+.st-sub { margin: 40px 0 0 !important; }
+.st-gate select { width: 100%; padding: 12px 14px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 15px var(--font); }
+
 </style>
 </head>
 <body>
@@ -822,6 +886,7 @@ span.cm-avatar:not([style*="--ch"]) { color: var(--soft); }
     <div class="wallet">
       <span class="vip-badge" hidden>HOLDER</span>
       <button class="coins" data-action="store" title="Your TRENCH" hidden><span class="coin"></span><b id="coin-count">0</b></button>
+      <a class="search-btn" href="#/search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></a>
       <button class="topup" data-action="store">Get TRENCH</button>
       <button class="account" id="account-btn" data-action="account">Start demo</button>
     </div>
@@ -895,6 +960,13 @@ const PLATFORM_FEE = 0.1;
 // Membresias pagadas con TRENCH: 100 TRENCH por dolar del precio del nivel ($1.99 = 199 TRENCH por mes).
 const TRENCH_PER_USD = 100;
 const tierTrench = (tier) => Math.round(tier.price * TRENCH_PER_USD);
+// Recompensa diaria: TRENCH segun el dia de la racha (del 7 en adelante, el ultimo). Saltear un dia la reinicia.
+const DAILY_REWARDS = [10, 15, 20, 25, 30, 40, 60];
+// Ver un anuncio desbloquea un episodio pago con TRENCH (no los de miembros). El anuncio dura AD_SECONDS y hay
+// ADS_PER_DAY por dia (dia UTC).
+const AD_SECONDS = 15;
+const ADS_PER_DAY = 5;
+const dayKey = (t) => new Date(t).toISOString().slice(0, 10);
 
 function createRules(catalog) {
   const episodes = new Map();
@@ -904,7 +976,30 @@ function createRules(catalog) {
   const channel = (id) => catalog.channels.find((c) => c.id === id);
 
   const isVip = (user) => !!user && user.vipUntil > Date.now();
-  const tierOf = (user, channelId) => user?.memberships[channelId] || 0;
+  // Nivel que da tener un token del canal (lo comprueba el servidor leyendo la wallet y vence a las pocas horas).
+  const gateTier = (user, channelId) => {
+    const g = user?.gateTiers?.[channelId];
+    return g && g.until > Date.now() ? g.tier : 0;
+  };
+  // Nivel efectivo en un canal: el mas alto entre la membresia pagada y el de holder del token.
+  const tierOf = (user, channelId) => Math.max(user?.memberships[channelId] || 0, gateTier(user, channelId));
+
+  // Estado de la recompensa diaria y de los anuncios de hoy.
+  function dailyOf(user, now = Date.now()) {
+    const today = dayKey(now);
+    const yesterday = dayKey(now - DAY);
+    const d = user.daily || {};
+    const claimedToday = d.last === today;
+    const alive = d.last === today || d.last === yesterday;
+    const streak = alive ? d.streak || 0 : 0;
+    const nextDay = claimedToday ? streak + 1 : streak + 1;
+    return {
+      claimedToday, streak, today,
+      reward: DAILY_REWARDS[Math.min(nextDay, DAILY_REWARDS.length) - 1],
+      rewards: DAILY_REWARDS,
+    };
+  }
+  const adsLeft = (user, now = Date.now()) => ADS_PER_DAY - (user.ads?.day === dayKey(now) ? user.ads.count : 0);
 
   // Episodios pagos: TRENCH, Holder Pass o cualquier nivel de membresia del canal.
   // De miembros: solo la membresia del canal con el nivel minimo (el Holder Pass no los abre).
@@ -927,11 +1022,14 @@ function createRules(catalog) {
 
   // Lo que el cliente sabe del usuario.
   function me(user) {
-    if (!user) return { user: null, coins: 0, vip: false, vipUntil: null, unlocked: [], follows: [], memberships: {}, memberPay: {}, feedUnseen: 0 };
+    if (!user) return { user: null, coins: 0, vip: false, vipUntil: null, unlocked: [], follows: [], memberships: {}, memberPay: {}, gateTiers: {}, daily: null, adsLeft: 0, feedUnseen: 0 };
     return {
       // label: lo que se muestra de la cuenta (el email, o la wallet acortada si entro con la wallet).
       user: { email: user.email || null, wallet: user.wallet || null, label: user.email || `${user.wallet.slice(0, 4)}…${user.wallet.slice(-4)}`, demo: user.email === DEMO_EMAIL }, coins: user.coins, vip: isVip(user), vipUntil: user.vipUntil || null,
       unlocked: user.unlocked, follows: user.follows, memberships: user.memberships, memberPay: user.memberPay || {},
+      // Niveles por ser holder de un token, solo los vigentes: { canal: { tier, until, amount } }.
+      gateTiers: Object.fromEntries(Object.entries(user.gateTiers || {}).filter(([, g]) => g.until > Date.now())),
+      daily: dailyOf(user), adsLeft: adsLeft(user), adSeconds: AD_SECONDS,
       feedUnseen: feedOf(user).filter((i) => i.isNew).length,
     };
   }
@@ -1013,6 +1111,38 @@ function createRules(catalog) {
       }
       return [200, me(user)];
     },
+    // Recompensa diaria: una por dia UTC. La racha sube si el ultimo cobro fue ayer.
+    daily(user) {
+      const d = dailyOf(user);
+      if (d.claimedToday) return [409, { error: 'Already claimed today. Come back tomorrow.', me: me(user) }];
+      const streak = d.streak + 1;
+      const reward = DAILY_REWARDS[Math.min(streak, DAILY_REWARDS.length) - 1];
+      user.daily = { last: d.today, streak };
+      user.coins += reward;
+      return [200, { reward, streak, me: me(user) }];
+    },
+    // Anuncio para desbloquear: adStart lo empieza y adUnlock desbloquea si paso el tiempo del anuncio.
+    adStart(user, { episodeId }) {
+      const ep = episodes.get(episodeId);
+      if (!ep) return [404, { error: 'Episode not found' }];
+      if (ep.access !== 'coins') return [400, { error: 'Ads only unlock TRENCH episodes.' }];
+      if (canWatch(user, ep)) return [409, { error: 'You can already watch this episode.' }];
+      if (adsLeft(user) <= 0) return [429, { error: `That's ${ADS_PER_DAY} ads today. More tomorrow.`, me: me(user) }];
+      user.pendingAd = { episodeId, at: Date.now() };
+      return [200, { seconds: AD_SECONDS }];
+    },
+    adUnlock(user, { episodeId }) {
+      const ep = episodes.get(episodeId);
+      const pending = user.pendingAd;
+      if (!ep || pending?.episodeId !== episodeId) return [400, { error: 'Start the ad first.' }];
+      if (Date.now() - pending.at < AD_SECONDS * 1000 - 500) return [425, { error: 'The ad is not over yet.' }];
+      if (adsLeft(user) <= 0) return [429, { error: `That's ${ADS_PER_DAY} ads today. More tomorrow.`, me: me(user) }];
+      const today = dayKey(Date.now());
+      user.ads = { day: today, count: (user.ads?.day === today ? user.ads.count : 0) + 1 };
+      delete user.pendingAd;
+      if (!user.unlocked.includes(ep.id)) user.unlocked.push(ep.id);
+      return play(user, ep);
+    },
     feedSeen(user) {
       user.feedSeenAt = Date.now();
       return [200, me(user)];
@@ -1055,7 +1185,7 @@ function createRules(catalog) {
     return { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], follows: [], memberships: {}, memberPay: {}, feedSeenAt: Date.now(), created: Date.now(), ...fields };
   }
 
-  return { episodes, canWatch, feedOf, me, play, settle, actions, seedDemo, newUser };
+  return { episodes, canWatch, tierOf, feedOf, me, play, settle, actions, seedDemo, newUser };
 }
 
 const RULES = createRules(CATALOG);
@@ -1071,6 +1201,7 @@ function demoSave() {
 const DEMO_ACTIONS = {
   '/api/unlock': 'unlock', '/api/follow': 'follow', '/api/membership': 'membership', '/api/feed/seen': 'feedSeen',
   '/api/buy-coins': 'buyCoins', '/api/vip': 'vip', '/api/reset': 'reset',
+  '/api/daily': 'daily', '/api/ad/start': 'adStart', '/api/ad/unlock': 'adUnlock',
 };
 function demoApi(path, body = {}) {
   // Membresias pagadas con TRENCH que vencieron: se renuevan con el saldo o terminan, como en el servidor.
@@ -1114,6 +1245,8 @@ function setMe(me) {
   $('#coin-count').textContent = me.coins.toLocaleString('en-US');
   $('.coins').hidden = !me.user;
   $('.vip-badge').hidden = !me.vip;
+  // Punto en el saldo cuando la recompensa diaria esta sin cobrar.
+  $('.coins').classList.toggle('has-daily', !!me.daily && !me.daily.claimedToday);
   const badge = $('#feed-badge');
   badge.hidden = !me.feedUnseen;
   badge.textContent = me.feedUnseen > 9 ? '9+' : String(me.feedUnseen || '');
@@ -1135,7 +1268,7 @@ function toast(text) {
 const seriesById = (id) => state.catalog.series.find((s) => s.id === id);
 const channelById = (id) => state.catalog.channels.find((c) => c.id === id);
 const episodeById = (id) => state.episodes.get(id);
-const tierIn = (channelId) => state.me.memberships?.[channelId] || 0;
+const tierIn = (channelId) => Math.max(state.me.memberships?.[channelId] || 0, state.me.gateTiers?.[channelId]?.tier || 0);
 const tierOfLevel = (c, level) => c.tiers.find((t) => t.level === level);
 // Precio mensual de un nivel en TRENCH: 100 TRENCH por dolar (la misma cuenta que hace el servidor en rules.mjs).
 const trenchOfTier = (t) => Math.round(t.price * 100);
@@ -1199,6 +1332,7 @@ function lockCardHtml(ep, buttonAttrs) {
       <b>Episode ${ep.n} is token-gated</b>
       <span>Unlock for <i class="coin"></i>${ep.price}</span>
       <button class="primary" ${buttonAttrs}>Unlock</button>
+      <button class="ghost ad-btn" data-ad="${ep.id}">Watch an ad · free</button>
     </div>`;
 }
 // Sin boton a la otra plataforma: si el video no se puede reproducir aca, se dice y nada mas.
@@ -1475,6 +1609,7 @@ function renderDiscover() {
           <a class="watch-btn light" href="${isTv(hero) ? watchHref(hero) : `#/watch/${hero.id}/${resumeEpisode(hero)}`}">${ICONS.play}<span>Play</span></a>
         </div>
       </div>
+      <div id="top10"></div>
       <h3 class="shelf-title">Channels</h3>
       <div class="shelf">${state.catalog.channels.map(channelCardHtml).join('')}</div>
       ${shelves.map(([title, items, withProgress]) => `
@@ -1487,6 +1622,68 @@ function renderDiscover() {
         <button data-action="reset">Reset demo</button>
       </footer>
     </section>`;
+  // Top 10 de la semana por vistas (lo cuenta el servidor; sin servidor no hay ranking).
+  if (SOCIAL_ENABLED) {
+    fetch('/api/rankings').then((r) => r.json()).then(({ items }) => {
+      const host = $('#top10');
+      const ranked = items.map((x) => ({ ...x, s: seriesById(x.seriesId) })).filter((x) => x.s);
+      if (!host || !ranked.length) return;
+      host.innerHTML = `
+        <h3 class="shelf-title">Top ${ranked.length} this week</h3>
+        <div class="shelf top-shelf">${ranked.map(({ s, plays }, i) => `
+          <div class="top-item"><span class="top-n">${i + 1}</span>${cardHtml(s, `${plays.toLocaleString('en-US')} play${plays === 1 ? '' : 's'}`)}</div>`).join('')}</div>`;
+    }).catch(() => {});
+  }
+}
+
+// ---------- Busqueda: series, episodios y canales del catalogo ----------
+
+function searchCatalog(q) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return { series: [], channels: [] };
+  const hit = (text) => words.every((w) => text.toLowerCase().includes(w));
+  const series = state.catalog.series.filter((s) => {
+    const c = channelById(s.channelId);
+    return hit([s.title, s.synopsis, s.ticker, ...s.tags, c.name, c.handle, ...s.episodes.map((e) => e.title || '')].join(' '));
+  });
+  const channels = state.catalog.channels.filter((c) => hit([c.name, c.handle, c.about, ...(c.topics || [])].join(' ')));
+  return { series, channels };
+}
+
+function renderSearch(initial = '') {
+  view.innerHTML = `
+    <section class="search-page">
+      <form class="search-box" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input name="q" type="search" placeholder="Search shows, episodes and channels" value="${esc(initial)}" autocomplete="off" aria-label="Search">
+      </form>
+      <div id="search-results"></div>
+    </section>`;
+  const input = $('.search-box input', view);
+  const results = $('#search-results');
+  const tags = [...new Set(state.catalog.series.flatMap((s) => s.tags))].slice(0, 12);
+  const draw = () => {
+    const q = input.value.trim();
+    currentHash = `#/search/${encodeURIComponent(q)}`;
+    if (!q) {
+      results.innerHTML = `<p class="search-hint">Try a show, a creator or a vibe.</p>
+        <div class="search-tags">${tags.map((t) => `<button class="ghost" data-q="${esc(t)}">${esc(t)}</button>`).join('')}</div>`;
+      return;
+    }
+    const { series, channels } = searchCatalog(q);
+    results.innerHTML = !series.length && !channels.length
+      ? `<p class="search-hint">Nothing for "${esc(q)}". Try another word.</p>`
+      : `${channels.length ? `<h3 class="shelf-title">Channels</h3><div class="shelf">${channels.map(channelCardHtml).join('')}</div>` : ''}
+         ${series.length ? `<h3 class="shelf-title">Shows</h3><div class="search-grid">${series.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>` : ''}`;
+  };
+  input.addEventListener('input', draw);
+  $('.search-box', view).addEventListener('submit', (e) => { e.preventDefault(); input.blur(); });
+  results.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-q]');
+    if (t) { input.value = t.dataset.q; draw(); }
+  });
+  draw();
+  input.focus();
 }
 
 // ---------- Pagina de episodio: feed vertical de los episodios de una serie ----------
@@ -2034,6 +2231,7 @@ function renderChannel(channelId) {
       ${shows.length ? `<div class="shelf">${shows.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>` : '<p class="empty-note">No shows yet.</p>'}
       ${SOCIAL_ENABLED && c.creator ? '<h3 class="shelf-title">Posts</h3><div class="post-host" id="ch-posts"></div>' : ''}
       <h3 class="shelf-title" id="membership">Membership</h3>
+      ${c.tokenGate && WALLET_ENABLED ? '<div class="gate-card" id="gate-card"></div>' : ''}
       <div class="tier-host" id="tier-host"></div>
       ${membersEps.length ? '<h3 class="shelf-title">Members only</h3><div class="shelf" id="members-shelf"></div>' : ''}
     </section>`;
@@ -2049,6 +2247,7 @@ function renderChannel(channelId) {
       <button class="ghost" data-ch="follow">${following ? 'Following' : 'Follow'}</button>
       ${tier ? `<span class="chip member-chip">${esc(tierOfLevel(c, tier).name)} member</span>` : '<button class="primary join" data-ch="join">Join</button>'}`;
     $('#tier-host').innerHTML = tiersHtml(c);
+    if ($('#gate-card')) $('#gate-card').innerHTML = gateCardHtml(c);
     // Los posts dependen del nivel de membresia: se vuelven a pedir cuando cambia.
     if ($('#ch-posts')) socialLib().then((m) => m.mountPosts($('#ch-posts'), c, socialApp()));
     if (membersEps.length) $('#members-shelf').innerHTML = membersEps.map(([s, ep]) => episodeCardHtml(s, ep)).join('');
@@ -2059,6 +2258,7 @@ function renderChannel(channelId) {
     if (!btn) return;
     if (btn.dataset.ch === 'follow') toggleFollow(c);
     if (btn.dataset.ch === 'join') $('#membership').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (btn.dataset.ch === 'gate') checkGate(c, btn);
   }
   document.addEventListener('me-changed', refresh);
   refresh();
@@ -2152,7 +2352,9 @@ function openStore({ episode = null, series = null } = {}) {
             <span>${affordable ? 'You have enough TRENCH to unlock this episode.' : `You need ${price - state.me.coins} more TRENCH.`}</span>
           </div>
           <button class="primary" data-action="spend" ${affordable ? '' : 'disabled'}>Unlock for <i class="coin"></i>${price}</button>
-        </div>` : ''}
+        </div>
+        ${episode.access === 'coins' ? `<button class="ghost ad-row" data-ad="${episode.id}" ${state.me.adsLeft > 0 ? '' : 'disabled'}>${state.me.adsLeft > 0 ? `Or watch a ${state.me.adSeconds}s ad to unlock it free · ${state.me.adsLeft} left today` : 'No free ad unlocks left today'}</button>` : ''}` : ''}
+      ${dailyHtml()}
       <h4>Holder Pass · Unlock every series</h4>
       <p class="sub">Unlimited viewing, no ads, 1080p.</p>
       <div class="vip-grid">
@@ -2244,6 +2446,115 @@ function openStore({ episode = null, series = null } = {}) {
       rerender();
     }
   });
+}
+
+// ---------- Acceso por holders de un token ----------
+
+const fmtAmount = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+function gateCardHtml(c) {
+  const g = c.tokenGate;
+  const tier = tierOfLevel(c, g.tier);
+  const mine = state.me.gateTiers?.[c.id];
+  return `
+    <div class="gate-text">
+      <span class="gate-kicker"><i class="sol-dot"></i>Holder access</span>
+      <b>Hold ${fmtAmount(g.min)} $${esc(g.symbol)} and get ${esc(tier.name)} free</b>
+      <span>${mine ? `You're in as a holder (${fmtAmount(mine.amount)} $${esc(g.symbol)}). Checked until ${new Date(mine.until).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}.`
+        : `We read your wallet's balance on Solana. Nothing is signed or moved. <a href="https://solscan.io/token/${esc(g.mint)}" target="_blank" rel="noopener">View token</a>`}</span>
+    </div>
+    <button class="${mine ? 'ghost' : 'primary'}" data-ch="gate">${mine ? 'Check again' : state.me.user?.wallet ? 'Check my wallet' : 'Connect wallet'}</button>`;
+}
+
+async function checkGate(c, btn) {
+  if (!state.me.user) return openAuth({ reason: `Log in to check your $${c.tokenGate.symbol}.`, then: () => checkGate(c, btn) });
+  if (!state.me.user.wallet) return walletPicker('link', () => checkGate(c));
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  const { status, data } = await api('/api/gate/check', { channelId: c.id });
+  if (btn?.isConnected) btn.disabled = false;
+  if (status !== 200) return toast(data.error || 'Could not check right now.');
+  toast(data.ok ? `Holder access unlocked · ${fmtAmount(data.amount)} $${data.symbol}`
+    : `You hold ${fmtAmount(data.amount)} $${data.symbol}. You need ${fmtAmount(data.need)}.`);
+}
+
+// ---------- Recompensa diaria y anuncios ----------
+
+// Tarjeta de check-in: los 7 dias de la racha, el de hoy marcado y el boton para cobrar.
+function dailyHtml() {
+  const d = state.me.daily;
+  if (!d) return '';
+  // Dia de la racha que toca cobrar (o el que se cobro hoy).
+  const current = d.claimedToday ? d.streak : d.streak + 1;
+  const weekStart = Math.floor((current - 1) / 7) * 7;
+  return `
+    <div class="daily">
+      <div class="daily-head"><b>Daily check-in</b><span>${d.streak ? `${d.streak}-day streak` : 'Start a streak'}</span></div>
+      <div class="daily-days">
+        ${d.rewards.map((r, i) => {
+          const day = weekStart + i + 1;
+          const done = day < current || (day === current && d.claimedToday);
+          const today = day === current && !d.claimedToday;
+          return `<span class="daily-day ${done ? 'done' : ''} ${today ? 'today' : ''}"><small>Day ${day}</small><b><i class="coin"></i>${d.rewards[Math.min(day, d.rewards.length) - 1]}</b></span>`;
+        }).join('')}
+      </div>
+      ${d.claimedToday ? `<p class="daily-note">Claimed today. Come back tomorrow for <i class="coin"></i>${d.reward}.</p>`
+        : `<button class="primary" data-daily>Claim <i class="coin"></i>${d.reward}</button>`}
+    </div>`;
+}
+
+async function claimDaily() {
+  const { status, data } = await api('/api/daily', {});
+  if (status !== 200) return toast(data.error || 'Could not claim right now.');
+  toast(`+${data.reward} TRENCH · ${data.streak}-day streak`);
+  const box = document.querySelector('.modal');
+  const card = box?.querySelector('.daily');
+  if (card) card.outerHTML = dailyHtml();
+}
+
+// Se muestra una vez por dia, al entrar, si la recompensa esta sin cobrar.
+function maybeShowDaily() {
+  const d = state.me.daily;
+  if (!d || d.claimedToday || local.read('dailyPrompt', '') === d.today || document.body.classList.contains('has-modal')) return;
+  local.write('dailyPrompt', d.today);
+  showModal(`
+    <div class="auth-head"><img src="/icon.svg" alt=""><button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button></div>
+    <h3>gm, anon</h3>
+    <p class="sub">Check in every day for free TRENCH. Skip a day and the streak starts over.</p>
+    ${dailyHtml()}`, 'auth');
+}
+
+// Anuncio simulado: un aviso de la casa (otra serie de Trenchers TV) con cuenta regresiva. Al terminar, el
+// servidor comprueba que paso el tiempo y desbloquea el episodio.
+async function watchAd(epId) {
+  if (!state.me.user) return openAuth({ reason: 'Log in to unlock episodes with an ad.', then: () => watchAd(epId) });
+  const start = await api('/api/ad/start', { episodeId: epId });
+  if (start.status !== 200) return toast(start.data.error || 'No ad right now.');
+  const ep = episodeById(epId);
+  const promo = state.catalog.series.filter((x) => x.id !== ep.seriesId)[Math.floor(Math.random() * Math.max(1, state.catalog.series.length - 1))] || seriesById(ep.seriesId);
+  let left = start.data.seconds;
+  const box = showModal(`
+    <div class="ad-frame" style="--accent:${promo.accent}">
+      <img src="${promo.poster}" alt="">
+      <div class="ad-top"><span class="ad-tag">Sponsored · simulated</span><span class="ad-count" data-left>${left}</span></div>
+      <div class="ad-body">
+        <span class="chip ticker">${esc(promo.ticker)}</span>
+        <b>${esc(promo.title)}</b>
+        <span>${esc(promo.synopsis)}</span>
+      </div>
+      <p class="ad-foot">Episode ${ep.n} unlocks when the ad ends. This demo shows a Trenchers TV promo instead of a real ad.</p>
+    </div>`, 'ad');
+  // Mientras dura el anuncio no se puede cerrar.
+  box.closest('#modal-root').querySelector('.backdrop').removeAttribute('data-action');
+  const timer = setInterval(async () => {
+    left -= 1;
+    const el = box.querySelector('[data-left]');
+    if (el) el.textContent = Math.max(0, left);
+    if (left > 0) return;
+    clearInterval(timer);
+    const res = await api('/api/ad/unlock', { episodeId: epId });
+    closeModal();
+    if (res.status !== 200) return toast(res.data.error || 'The ad did not count. Try again.');
+    toast(`Episode ${ep.n} unlocked with an ad · ${state.me.adsLeft} left today`);
+  }, 1000);
 }
 
 // ---------- Wallets de Solana ----------
@@ -2392,6 +2703,9 @@ function route() {
   } else if (parts[0] === 'discover') {
     tab = 'discover';
     renderDiscover();
+  } else if (parts[0] === 'search') {
+    tab = 'search';
+    renderSearch(decodeURIComponent(parts[1] || ''));
   } else if (parts[0] === 'studio' && STUDIO_ENABLED) {
     tab = 'studio';
     current = mountStudio(parts.slice(1));
@@ -2403,6 +2717,19 @@ function route() {
   syncMuteButtons();
 }
 
+// Botones que no son data-action: anuncio para desbloquear, check-in diario y wallet de la cuenta.
+document.addEventListener('click', async (e) => {
+  const adBtn = e.target.closest('[data-ad]');
+  if (adBtn && !adBtn.disabled) { e.stopPropagation(); closeModal(); watchAd(adBtn.dataset.ad); }
+  if (e.target.closest('[data-daily]')) claimDaily();
+  const walletBtn = e.target.closest('[data-wallet]');
+  if (walletBtn?.dataset.wallet === 'link') walletPicker('link');
+  if (walletBtn?.dataset.wallet === 'unlink') {
+    const { status, data } = await api('/api/wallet/unlink', {});
+    if (status === 200) { toast('Wallet unlinked'); openAccount(); } else toast(data.error);
+  }
+});
+
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -2411,12 +2738,6 @@ document.addEventListener('click', async (e) => {
   if (action === 'store') openStore();
   if (action === 'account') openAccount();
   if (action === 'demo-login') loginDemo();
-  const walletBtn = e.target.closest('[data-wallet]');
-  if (walletBtn?.dataset.wallet === 'link') walletPicker('link');
-  if (walletBtn?.dataset.wallet === 'unlink') {
-    const { status, data } = await api('/api/wallet/unlink', {});
-    if (status === 200) { toast('Wallet unlinked'); openAccount(); } else toast(data.error);
-  }
   if (action === 'mute') { e.stopPropagation(); toggleMute(); }
   if (action === 'logout') {
     await api('/api/auth/logout', {}).then(({ data }) => setMe(data));
@@ -2487,6 +2808,9 @@ function mountStudio(parts) {
 const [{ data: catalog }, { data: me }] = await Promise.all([api('/api/catalog'), api('/api/me')]);
 setCatalog(catalog);
 setMe(me);
+// Check-in diario: una vez por dia, un rato despues de entrar.
+setTimeout(maybeShowDaily, 1500);
+document.addEventListener('me-changed', () => setTimeout(maybeShowDaily, 600));
 route();
 
 </script>
