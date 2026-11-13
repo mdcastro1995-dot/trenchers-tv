@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trenchers TV</title>
+<meta name="description" content="Shareable demo of Trenchers TV: crypto-meme short dramas in Reels and TV modes, channels, feed and memberships.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+<style>
+/* Trenchers TV: estetica "streaming limpio" (ReelShort / Netflix). El video manda: fondo negro, texto blanco,
+   grises para lo secundario y un solo acento rojo para la accion principal y el progreso.
+   Sin recuadros, contornos, glow ni vidrio; esquinas chicas (4-8px); jerarquia por tamano y peso, no por cajas. */
+:root {
+  --bg: #000;
+  --surface: #141414;
+  --surface-2: #1f1f1f;
+  --hair: #2a2a2a;
+  --text: #fff;
+  --soft: #cfcfcf;
+  --muted: #9a9a9a;
+  --red: #ff3b30;
+  --font: 'Inter Tight', system-ui, -apple-system, sans-serif;
+  --header: 64px;
+  --tape: 0px;
+  --reel-h: calc(100dvh - var(--header));
+  --pad: 16px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
+body { font-family: var(--font); font-weight: 400; -webkit-font-smoothing: antialiased; overflow: hidden; }
+body[data-view="discover"], body[data-view="tv"], body[data-view="following"], body[data-view="channel"] { overflow: auto; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+svg { width: 100%; height: 100%; display: block; }
+:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* ---------- Header ---------- */
+.topbar {
+  position: fixed; inset: 0 0 auto; z-index: 20; height: var(--header);
+  display: flex; align-items: center; gap: 28px; padding: 0 var(--pad);
+  background: linear-gradient(to bottom, rgba(0,0,0,.92), rgba(0,0,0,.6) 70%, rgba(0,0,0,0));
+}
+body[data-view="discover"] .topbar, body[data-view="tv"] .topbar, body[data-view="following"] .topbar, body[data-view="channel"] .topbar { background: #000; }
+.brand { display: flex; align-items: center; font-weight: 800; font-size: 19px; letter-spacing: -.4px; text-transform: uppercase; }
+.brand img { display: none; }
+.brand em { font-style: normal; color: var(--red); }
+.tabs { display: flex; gap: 22px; }
+.tabs a { position: relative; font-weight: 600; font-size: 15px; color: var(--muted); white-space: nowrap; transition: color .15s; }
+.tabs a:hover { color: var(--soft); }
+.tabs a.on { color: var(--text); }
+.wallet { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.coins { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.topup { padding: 8px 16px; border-radius: 4px; font-weight: 700; font-size: 14px; background: var(--red); color: #fff; }
+.topup:hover { background: #ff5247; }
+.account { padding: 8px 16px; border-radius: 4px; font-weight: 700; font-size: 14px; background: #fff; color: #000; white-space: nowrap; }
+.account.signed-in, .avatar {
+  width: 32px; height: 32px; padding: 0; display: grid; place-items: center; border-radius: 4px;
+  font-weight: 800; font-size: 15px; background: var(--red); color: #fff;
+}
+.vip-badge { font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--muted); }
+
+/* Moneda TRENCH: un punto blanco con la T, discreto. */
+.coin {
+  display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; vertical-align: -2px; flex: none;
+  background: var(--text);
+}
+.coin::after { content: 'T'; font: 800 9px/1 var(--font); color: #000; font-style: normal; }
+i.coin { margin-right: 4px; }
+.coin.big { width: 40px; height: 40px; }
+.coin.big::after { font-size: 20px; }
+
+main { padding-top: var(--header); }
+.ticker-tape { display: none; }
+.up { color: var(--text); }
+.down { color: var(--red); }
+
+/* ---------- Reel vertical ---------- */
+/* En el telefono el reel ocupa toda la pantalla y el header flota encima. */
+body[data-view="feed"] main, body[data-view="watch"] main { padding-top: 0; }
+body[data-view="feed"], body[data-view="watch"] { --reel-h: 100dvh; }
+.reel-layout { display: flex; justify-content: center; }
+.reel {
+  height: var(--reel-h); width: 100%;
+  overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none;
+}
+.reel::-webkit-scrollbar { display: none; }
+.slide { position: relative; height: var(--reel-h); scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; background: #000; }
+.slide video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slide::after {
+  content: ''; position: absolute; inset: auto 0 0; height: 55%; pointer-events: none;
+  background: linear-gradient(transparent, rgba(0,0,0,.92));
+}
+.tap-zone { position: absolute; inset: 0; z-index: 1; }
+.big-play {
+  position: absolute; z-index: 2; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; padding: 20px 18px 20px 24px;
+  border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; pointer-events: none; opacity: 0; transition: opacity .15s;
+}
+.slide.paused:not(.locked) .big-play { opacity: 1; }
+.progress { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.2); }
+.progress i { display: block; height: 100%; width: 0; background: var(--red); }
+
+.sound-hint {
+  position: absolute; z-index: 4; top: calc(var(--header) + 8px); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 7px 14px 7px 10px; border-radius: 999px; white-space: nowrap;
+  background: rgba(0,0,0,.6); font-size: 13px; font-weight: 600;
+}
+.sound-hint svg { width: 16px; height: 16px; }
+
+.slide-info { position: absolute; z-index: 3; left: var(--pad); right: 80px; bottom: 28px; color: var(--text); }
+.slide-info h2 { margin: 4px 0 6px; font-size: 24px; font-weight: 800; line-height: 1.05; letter-spacing: -.5px; }
+.slide-info .tags { margin: 0 0 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.slide-info .synopsis { margin: 0 0 16px; font-size: 14px; line-height: 1.4; color: var(--soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.slide-info.compact h2 { font-size: 20px; }
+.ep-line { margin: 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.18); font-size: 13px; font-weight: 600; }
+
+.chip { display: inline-block; margin-right: 10px; font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); }
+.chip.hot { color: var(--red); }
+.chip.ticker { color: var(--text); }
+
+.watch-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px 11px 18px; border-radius: 4px;
+  font-size: 15px; font-weight: 700; color: #000; background: #fff; transition: background .15s;
+}
+.watch-btn:hover { background: #e2e2e2; }
+.watch-btn svg { width: 18px; height: 18px; }
+.watch-btn.light { background: #fff; }
+
+.rail { position: absolute; z-index: 3; right: 8px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
+.rail-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; font-size: 11px; font-weight: 600; color: var(--text); }
+.rail-btn svg { width: 30px; height: 30px; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+.rail-btn.on svg { color: var(--red); }
+.rail-btn.mute-btn { width: 40px; height: 40px; padding: 9px; border-radius: 50%; color: #fff; background: rgba(0,0,0,.45); }
+.rail-btn.mute-btn svg { width: 100%; height: 100%; filter: none; }
+
+/* Candado: video oscurecido y el aviso en texto, sin tarjeta. */
+.lock-layer { display: none; position: absolute; inset: 0; z-index: 5; place-items: center; background: rgba(0,0,0,.78); backdrop-filter: blur(18px); }
+.slide.locked .lock-layer { display: grid; }
+.slide.locked .sound-hint, .slide.locked .progress { display: none; }
+.lock-card { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 24px; max-width: 320px; }
+.lock-icon { width: 36px; height: 36px; color: #fff; margin-bottom: 6px; }
+.lock-card b { font-size: 20px; font-weight: 800; letter-spacing: -.3px; }
+.lock-card span { color: var(--soft); font-size: 14px; }
+.primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  padding: 11px 24px; border-radius: 4px; font-weight: 700; font-size: 15px; color: #fff; background: var(--red); transition: background .15s;
+}
+.primary:not(:disabled):hover { background: #ff5247; }
+.primary:disabled { opacity: .4; cursor: not-allowed; }
+.lock-card .primary { margin-top: 10px; min-width: 200px; }
+
+/* ---------- Pagina de episodio ---------- */
+.back-btn { display: none; }
+.side-panel { display: none; }
+
+/* ---------- Discover ---------- */
+.discover { padding: 0 0 56px; }
+.hero { position: relative; display: flex; align-items: flex-end; overflow: hidden; min-height: 78vh; background: #000; }
+.hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, #000 4%, rgba(0,0,0,.55) 45%, rgba(0,0,0,.1) 75%), linear-gradient(to right, rgba(0,0,0,.6), transparent 70%);
+}
+.hero-body { position: relative; z-index: 1; padding: 0 var(--pad) 32px; max-width: 620px; }
+.hero-tags { display: flex; gap: 0; flex-wrap: wrap; }
+.hero h1 { margin: 10px 0 12px; font-size: clamp(38px, 6vw, 68px); font-weight: 800; line-height: .98; letter-spacing: -1.6px; }
+.hero p { margin: 0 0 22px; font-size: 15px; line-height: 1.5; color: var(--soft); max-width: 480px; }
+.shelf-title { display: block; margin: 34px var(--pad) 12px; font-size: 18px; font-weight: 700; letter-spacing: -.2px; }
+.shelf { display: flex; gap: 10px; align-items: flex-start; padding: 0 var(--pad) 6px; overflow-x: auto; scrollbar-width: none; }
+.shelf::-webkit-scrollbar { display: none; }
+.poster { position: relative; flex: none; width: 140px; }
+.poster img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 4px; display: block; transition: opacity .15s; background: var(--surface); }
+.poster:hover img { opacity: .8; }
+.poster.wide { width: 250px; }
+.poster.wide img { aspect-ratio: 16 / 9; }
+.poster .lock-mini { top: 6px; right: 6px; }
+.poster b { display: block; margin-top: 8px; font-size: 13px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ep-badge { position: absolute; top: 6px; left: 6px; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,.75); }
+.demo-foot { margin: 48px var(--pad) 0; display: flex; gap: 14px; align-items: center; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.demo-foot button { font-weight: 600; color: var(--soft); text-decoration: underline; }
+
+/* ---------- Modo TV ---------- */
+.tv-player { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 6px; background: var(--surface); }
+.tv-player video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tv-player.paused:not(.locked) .big-play { opacity: 1; }
+.tv-player:fullscreen { border-radius: 0; }
+.tv-player:fullscreen video { object-fit: contain; }
+.tv-controls {
+  position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px;
+  padding: 30px 14px 12px; background: linear-gradient(transparent, rgba(0,0,0,.8));
+}
+.tv-btn { width: 32px; height: 32px; padding: 6px; flex: none; color: #fff; }
+.tv-seek { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,.25); overflow: hidden; cursor: pointer; }
+.tv-seek i { display: block; height: 100%; width: 0; background: var(--red); }
+.tv-time { color: var(--soft); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tv-lock { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(0,0,0,.78); backdrop-filter: blur(18px); }
+.tv-lock[hidden] { display: none; }
+.tv-player.locked .tv-controls { display: none; }
+
+.tv-hero { display: flex; flex-direction: column; gap: 20px; padding: 12px var(--pad) 20px; background: #000; }
+.tv-hero-info h1 { margin: 10px 0 12px; font-size: clamp(34px, 4.6vw, 60px); font-weight: 800; line-height: .98; letter-spacing: -1.4px; }
+.tv-hero-info p { margin: 0 0 22px; font-size: 15px; line-height: 1.5; color: var(--soft); max-width: 480px; }
+.tv-home { padding-bottom: 56px; }
+
+.tv-watch { padding: 12px var(--pad) 40px; }
+.tv-meta { padding: 18px 0 0; }
+.tv-meta h1 { margin: 6px 0 12px; font-size: 28px; font-weight: 800; line-height: 1.05; letter-spacing: -.6px; }
+.tv-meta .synopsis { margin: 0; line-height: 1.55; font-size: 15px; color: var(--soft); }
+.tv-meta .tag-row { display: flex; gap: 0; flex-wrap: wrap; margin-bottom: 12px; }
+.tv-actions { display: flex; gap: 8px; margin-bottom: 14px; }
+.pill-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 4px; font-weight: 600; font-size: 14px; background: rgba(255,255,255,.12); }
+.pill-btn:hover { background: rgba(255,255,255,.2); }
+.pill-btn svg { width: 16px; height: 16px; }
+.pill-btn.on svg { color: var(--red); }
+.tv-list { margin-top: 28px; }
+.tv-list-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.tv-list-head b { font-size: 18px; font-weight: 700; }
+.tv-ep {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px 8px; text-align: left;
+  border-radius: 6px; transition: background .15s;
+}
+.tv-ep:hover { background: var(--surface); }
+.tv-ep.current { background: var(--surface-2); }
+.tv-ep-thumb { position: relative; flex: none; width: 132px; aspect-ratio: 16 / 9; }
+.tv-ep-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; background: var(--surface); }
+.tv-ep.is-locked .tv-ep-thumb img { filter: brightness(.5); }
+.tv-ep-thumb .eq { right: 6px; bottom: 6px; }
+.tv-ep-text { min-width: 0; }
+.tv-ep-text b { display: block; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.tv-ep-text small { font-size: 12px; color: var(--muted); }
+
+/* ---------- Grilla de episodios ---------- */
+.grid-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.ranges { display: flex; gap: 14px; }
+.ranges button { font-weight: 600; font-size: 14px; color: var(--muted); }
+.ranges button.on { color: var(--text); }
+.grid-note { color: var(--muted); font-size: 12px; }
+.ep-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.ep-cell {
+  position: relative; aspect-ratio: 1.2; border-radius: 4px; background: var(--surface);
+  font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; transition: background .15s;
+}
+.ep-cell:hover { background: var(--surface-2); }
+.ep-cell.seen { color: var(--muted); }
+.ep-cell.is-locked { color: #5a5a5a; }
+.ep-cell.current { color: #000; background: #fff; }
+.lock-mini { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; padding: 0; color: var(--muted); }
+.ep-cell.current .lock-mini { color: #000; }
+.eq { position: absolute; right: 6px; bottom: 6px; display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+.eq i { width: 3px; background: var(--red); animation: eq .8s ease-in-out infinite alternate; }
+.eq i:nth-child(2) { animation-delay: -.3s; }
+.eq i:nth-child(3) { animation-delay: -.6s; }
+@keyframes eq { from { height: 3px; } to { height: 10px; } }
+
+/* ---------- Modales ---------- */
+.backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.7); animation: fade .15s; }
+.modal {
+  position: fixed; z-index: 41; left: 0; right: 0; bottom: 0; max-height: 88dvh; overflow-y: auto;
+  padding: 22px var(--pad) calc(22px + env(safe-area-inset-bottom)); background: var(--surface);
+  border-radius: 12px 12px 0 0; animation: rise .22s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes fade { from { opacity: 0; } }
+@keyframes rise { from { transform: translateY(40px); opacity: 0; } }
+.icon-btn { width: 32px; height: 32px; padding: 7px; border-radius: 50%; background: var(--surface-2); margin-left: auto; flex: none; }
+.icon-btn:hover { background: #2c2c2c; }
+
+.sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.sheet-head img { width: 42px; height: 63px; border-radius: 3px; object-fit: cover; }
+.sheet-head b { font-size: 17px; font-weight: 700; }
+.sheet-head span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.store-head { display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--hair); font-size: 14px; color: var(--muted); }
+.store-head b { color: var(--text); margin-left: 4px; font-weight: 700; }
+.store-head .sep { width: 1px; height: 14px; background: var(--hair); }
+.store h4 { margin: 24px 0 2px; font-size: 18px; font-weight: 700; }
+.store .sub { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+.store h4 + .coin-grid { margin-top: 14px; }
+.unlock-box {
+  margin-top: 16px; padding: 14px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  border-radius: 6px; background: var(--surface-2);
+}
+.unlock-box b { font-weight: 700; }
+.unlock-box span { display: block; margin-top: 3px; font-size: 13px; color: var(--muted); }
+.unlock-box.short b { color: var(--red); }
+
+.vip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.vip-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px; text-align: left;
+  border-radius: 6px; background: var(--surface-2); transition: background .15s;
+}
+.vip-card:hover, .coin-card:hover { background: #2c2c2c; }
+.vip-card b { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
+.vip-name { font-weight: 600; font-size: 13px; color: var(--muted); }
+.vip-note { font-size: 12px; color: var(--muted); }
+
+.coin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+.coin-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; overflow: hidden;
+  border-radius: 6px; background: var(--surface-2); transition: background .15s;
+}
+.coin-stack { padding: 20px 0 10px; }
+.coin-amt { font-weight: 700; font-size: 15px; padding-bottom: 12px; font-variant-numeric: tabular-nums; }
+.coin-amt em { font-style: normal; color: var(--muted); font-weight: 500; }
+.coin-price { width: 100%; padding: 9px 0; border-top: 1px solid var(--hair); font-weight: 700; }
+.badge { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--red); }
+.test-note { margin: 18px 0 0; text-align: center; color: var(--muted); font-size: 12px; }
+
+/* Cuenta */
+.auth-head { display: flex; align-items: center; margin-bottom: 14px; }
+.auth-head img { display: none; }
+.auth h3 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -.5px; line-height: 1.05; word-break: break-all; }
+.auth .sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+.auth-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--soft); }
+.auth-form input {
+  padding: 13px 14px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 16px var(--font);
+}
+.auth-form input:focus { outline: none; border-color: var(--muted); }
+.form-error { margin: 0; min-height: 18px; color: var(--red); font-size: 13px; }
+.auth-form .primary { margin-top: 4px; }
+.switch { margin: 16px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+.switch button { color: var(--text); font-weight: 600; text-decoration: underline; }
+.account-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+.account-stats div { padding: 12px; border-radius: 6px; background: var(--surface-2); }
+.account-stats dt { font-size: 12px; color: var(--muted); }
+.account-stats dd { margin: 4px 0 0; font-weight: 700; font-size: 15px; }
+.account-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ghost { padding: 11px 18px; border-radius: 4px; font-weight: 600; font-size: 14px; background: rgba(255,255,255,.12); }
+.ghost:hover { background: rgba(255,255,255,.2); }
+
+#toast {
+  position: fixed; z-index: 60; left: 50%; bottom: 28px; transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  padding: 11px 18px; border-radius: 4px; background: #fff; color: #000;
+  font-weight: 600; font-size: 14px; transition: .2s; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Canales, membresias y feed ---------- */
+.tab-badge {
+  position: absolute; top: -2px; right: -10px; width: 7px; height: 7px; padding: 0; overflow: hidden;
+  border-radius: 50%; font-size: 0; background: var(--red);
+}
+.by { display: inline-block; margin: 0 0 4px; font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); }
+.by:hover { color: var(--text); }
+.ch-avatar {
+  display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%;
+  font-size: 12px; font-weight: 800; letter-spacing: -.3px; color: #000; background: var(--ch, #fff);
+}
+.ch-avatar.sm { width: 22px; height: 22px; font-size: 9px; }
+.ch-avatar.lg { width: 52px; height: 52px; font-size: 18px; }
+.ch-avatar.xl { width: 96px; height: 96px; font-size: 34px; }
+.ext-note { margin: 14px 0 0; font-size: 12px; color: var(--muted); }
+.ext-note a { color: var(--soft); text-decoration: underline; }
+.link-btn { display: inline-block; margin-top: 12px; font-weight: 600; text-decoration: underline; }
+.chip.member-chip { color: var(--red); }
+
+.ch-card {
+  flex: none; width: 168px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px;
+  border-radius: 6px; background: var(--surface); transition: background .15s;
+}
+.ch-card:hover { background: var(--surface-2); }
+.ch-card b { font-size: 15px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
+.ch-card > span:not(.ch-avatar):not(.chip) { font-size: 12px; color: var(--muted); }
+
+.channel-page { padding-bottom: 56px; }
+.ch-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 32px var(--pad) 30px; background: #000; border-bottom: 1px solid var(--hair); }
+.ch-id { flex: 1 1 280px; min-width: 0; }
+.ch-id h1 { margin: 0; font-size: clamp(32px, 5vw, 56px); font-weight: 800; line-height: 1; letter-spacing: -1.2px; }
+.ch-handle { display: inline-block; margin-top: 6px; font-weight: 500; color: var(--muted); }
+.ch-id p { margin: 12px 0 0; max-width: 560px; font-size: 15px; line-height: 1.5; color: var(--soft); }
+.ch-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tier-host { padding: 0 var(--pad); }
+.tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.tier-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 6px; background: var(--surface); }
+.tier-card.current { box-shadow: inset 0 0 0 2px var(--red); }
+.tier-card.dim { opacity: .45; }
+.tier-name { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.tier-card b { font-size: 28px; font-weight: 800; letter-spacing: -.6px; }
+.tier-card b small { font-size: 13px; font-weight: 500; letter-spacing: 0; margin-left: 2px; color: var(--muted); }
+.tier-card ul { margin: 0 0 8px; padding-left: 18px; font-size: 14px; color: var(--soft); }
+.tier-card li + li { margin-top: 4px; }
+.tier-card .primary, .tier-card .chip { margin-top: auto; align-self: flex-start; }
+.tier-card .primary { background: #fff; color: #000; }
+.tier-card .primary:not(:disabled):hover { background: #e2e2e2; }
+
+.feed-page { padding: 28px var(--pad) 56px; }
+.feed-wrap, .feed-empty { max-width: 760px; margin: 0 auto; }
+.feed-page h1 { margin: 0 0 16px; font-size: clamp(30px, 4.6vw, 46px); font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.feed-empty p { font-size: 16px; color: var(--soft); margin: 0 0 18px; }
+.following { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 18px; scrollbar-width: none; }
+.ch-chip { display: inline-flex; align-items: center; gap: 8px; flex: none; padding: 4px 14px 4px 4px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--surface); white-space: nowrap; }
+.ch-chip:hover { background: var(--surface-2); }
+.ch-chip.add { padding: 6px 14px; color: var(--muted); }
+.feed-list { display: flex; flex-direction: column; }
+.feed-item { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--hair); transition: opacity .15s; }
+.feed-item:hover { opacity: .8; }
+.feed-item.is-new .feed-body b::after { content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 50%; background: var(--red); vertical-align: middle; }
+.feed-thumb { position: relative; flex: none; width: 72px; aspect-ratio: 2 / 3; }
+.feed-thumb.wide { width: 160px; aspect-ratio: 16 / 9; }
+.feed-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; background: var(--surface); }
+.feed-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.feed-ch { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.feed-body b { font-size: 16px; font-weight: 700; line-height: 1.2; }
+.feed-ep { font-size: 14px; color: var(--soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed-tags { display: flex; gap: 0; flex-wrap: wrap; }
+
+.tv-yt { position: absolute; inset: 0; z-index: 4; background: #000; }
+.tv-yt iframe { width: 100%; height: 100%; border: 0; display: block; }
+.tv-player.external .tv-controls, .tv-player.external .big-play, .tv-player.external .tap-zone { display: none; }
+
+.account-subs { margin: 6px 0 16px; }
+.account-subs h4 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.account-subs .sub { margin: 8px 0 0; }
+.account-subs .sub a { text-decoration: underline; }
+.ch-row { display: flex; align-items: center; gap: 10px; padding: 10px; margin-bottom: 6px; border-radius: 6px; background: var(--surface-2); }
+.ch-row b { display: block; font-weight: 600; }
+.ch-row small { font-size: 12px; color: var(--muted); }
+.demo-btn { display: block; width: 100%; margin-top: 12px; }
+
+/* ---------- Telefono ---------- */
+@media (max-width: 899px) {
+  .topbar { gap: 16px; }
+  .brand { font-size: 16px; }
+  .tabs { gap: 16px; }
+  .tabs a { font-size: 14px; }
+  .wallet { gap: 10px; }
+  .account { padding: 7px 12px; font-size: 13px; }
+  .topup { display: none; }
+  .vip-grid { grid-template-columns: 1fr; }
+  .vip-card { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 10px; }
+  .vip-card .vip-note { width: 100%; }
+  .ep-grid { grid-template-columns: repeat(5, 1fr); }
+  .tv-time { display: none; }
+  .feed-thumb.wide { width: 120px; }
+}
+
+/* ---------- Escritorio ---------- */
+@media (min-width: 900px) {
+  :root { --pad: 48px; }
+  .topbar { padding: 0 var(--pad); }
+  /* El video es una tarjeta 9:16 centrada sobre negro; los botones van afuera, a la derecha. */
+  body[data-view="feed"], body[data-view="watch"] { --reel-h: calc(100dvh - var(--header)); }
+  body[data-view="feed"] main, body[data-view="watch"] main { padding-top: var(--header); }
+  .reel-layout .reel, .watch-reel { width: calc(var(--reel-h) * 9 / 16 + 80px); }
+  .slide { background: transparent; padding: 8px 0 16px; }
+  .slide video { inset: 8px auto 16px 0; width: calc(100% - 80px); height: calc(100% - 24px); border-radius: 8px; background: var(--surface); }
+  .slide::after { right: 80px; bottom: 16px; border-radius: 0 0 8px 8px; }
+  .slide .progress { right: 80px; left: 0; bottom: 16px; border-radius: 0 0 8px 8px; overflow: hidden; }
+  .lock-layer { inset: 8px 80px 16px 0; border-radius: 8px; }
+  .slide .tap-zone { right: 80px; }
+  .big-play { left: calc(50% - 40px); }
+  .sound-hint { top: 24px; left: calc(50% - 40px); }
+  .slide-info { left: 18px; right: 98px; bottom: 34px; }
+  .rail { right: 6px; bottom: 40px; }
+
+  .watch { display: flex; justify-content: center; gap: 48px; padding-left: 80px; }
+  .back-btn {
+    display: block; position: fixed; z-index: 5; left: var(--pad); top: calc(var(--header) + 20px);
+    width: 40px; height: 40px; padding: 9px; border-radius: 50%; background: var(--surface-2);
+  }
+  .watch .rail-btn[data-action="episodes"] { display: none; }
+  .side-panel { display: block; width: 440px; height: var(--reel-h); overflow-y: auto; padding: 24px 6px 30px 0; scrollbar-width: thin; }
+  .crumbs { color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+  .crumbs a:hover { color: var(--text); }
+  .side-panel h1 { margin: 8px 0 12px; font-size: 34px; font-weight: 800; line-height: 1.02; letter-spacing: -.8px; }
+  .side-panel .synopsis { margin: 0 0 16px; line-height: 1.55; font-size: 15px; color: var(--soft); }
+  .tag-row { display: flex; gap: 0; flex-wrap: wrap; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--hair); }
+
+  .modal {
+    left: 50%; right: auto; bottom: auto; top: 50%; width: min(760px, calc(100vw - 48px)); max-height: 88vh;
+    transform: translate(-50%, -50%); border-radius: 10px; padding: 26px 28px; animation: pop .18s ease-out;
+  }
+  .modal.sheet { width: 500px; }
+  .modal.auth { width: 420px; }
+  @keyframes pop { from { opacity: 0; transform: translate(-50%, -48%); } }
+
+  .tv-hero { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: center; gap: 48px; padding: 24px var(--pad) 32px; }
+  .tv-watch { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; padding: 20px var(--pad) 40px; }
+  .tv-list { margin-top: 0; max-height: calc(var(--reel-h) - 40px); overflow-y: auto; padding-right: 6px; position: sticky; top: calc(var(--header) + 20px); scrollbar-width: thin; }
+  .tv-meta h1 { font-size: 34px; }
+  .poster.wide { width: 290px; }
+  .poster { width: 170px; }
+  .ch-hero { padding: 44px var(--pad) 40px; gap: 28px; }
+  .hero { min-height: 82vh; align-items: flex-end; }
+  .hero-body { padding: 0 var(--pad) 64px; }
+}
+
+@media (max-width: 430px) {
+  .coins { display: none !important; }
+  .tabs { gap: 12px; }
+}
+
+/* Video de un canal externo: reproductor de la plataforma, o un aviso si no se puede reproducir aca. */
+.tv-yt .yt-target, .tv-yt iframe { width: 100%; height: 100%; }
+.ext-card {
+  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 20px; text-align: center;
+  color: var(--text); background: var(--surface);
+}
+.ext-card b { font-size: 18px; font-weight: 700; }
+.ext-card span { color: var(--muted); font-size: 14px; max-width: 360px; }
+
+/* Reels de un canal externo (TikTok): el reproductor ocupa la parte de arriba y la ficha queda debajo, sobre negro. */
+/* TikTok dibuja su propia columna de likes, comentarios y compartir sobre el borde derecho del video y no deja
+   ocultarla: el video deja una columna libre a la derecha para los botones de la app, asi no se pisan. */
+.ext-frame { position: absolute; z-index: 2; top: var(--header); left: 0; right: 72px; bottom: 200px; background: #000; }
+.ext-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.slide.external::after { display: none; }
+.slide.external .tap-zone, .slide.external .big-play, .slide.external .sound-hint, .slide.external .progress { display: none; }
+.slide.external .rail { bottom: 210px; right: 6px; }
+/* TikTok trae su propio control de volumen. */
+.slide.external .rail-btn.mute-btn { display: none; }
+@media (min-width: 900px) {
+  .ext-frame { top: 8px; right: 80px; bottom: 200px; border-radius: 8px; overflow: hidden; }
+}
+
+</style>
+</head>
+<body>
+
+
+  <header class="topbar">
+    <a class="brand" href="#/"><img src="icon.svg" alt=""><span>Trenchers<em>TV</em></span></a>
+    <nav class="tabs">
+      <a href="#/" data-tab="feed">Reels</a>
+      <a href="#/tv" data-tab="tv">TV</a>
+      <a href="#/feed" data-tab="following">Feed<span class="tab-badge" id="feed-badge" hidden></span></a>
+      <a href="#/discover" data-tab="discover">Discover</a>
+    </nav>
+    <div class="wallet">
+      <span class="vip-badge" hidden>HOLDER</span>
+      <button class="coins" data-action="store" title="Your TRENCH" hidden><span class="coin"></span><b id="coin-count">0</b></button>
+      <button class="topup" data-action="store">Get TRENCH</button>
+      <button class="account" id="account-btn" data-action="account">Start demo</button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <div id="modal-root"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module">
+// Trenchers TV: modo Reels (series verticales 9:16 en feed) y modo TV (shows horizontales 16:9),
+// canales que se siguen (Feed) con membresias por niveles, candados por episodio y tienda de monedas/VIP.
+// Rutas por hash: #/ (Reels), #/watch/<serie>/<episodio>, #/tv, #/tv/<show>/<episodio>, #/feed,
+// #/channel/<canal>, #/discover.
+// El servidor decide si un episodio se puede ver (/api/play); aca solo se muestra lo que responde.
+
+// Videos de canales externos (YouTube, TikTok) con el reproductor de esa plataforma. El artefacto compartible
+// no puede incrustar otros sitios: su build pone esto en false y muestra un link en su lugar.
+const EMBEDS_ALLOWED = true;
+
+const $ = (sel, el = document) => el.querySelector(sel);
+const view = $('#view');
+const modalRoot = $('#modal-root');
+
+// Ruta actual de la app. El visor de artefactos no deja ver ni compartir el hash, asi que vive en memoria.
+// Un link con #tv, #feed o #discover abre directamente esa seccion.
+let currentHash = ({ '#tv': '#/tv', '#feed': '#/feed', '#discover': '#/discover' })[location.hash] || '#/';
+function go(hash) {
+  currentHash = hash;
+  route();
+}
+
+const state = {
+  catalog: null,
+  me: { coins: 0, vip: false, unlocked: [], follows: [], memberships: {}, feedUnseen: 0 },
+  episodes: new Map(),
+  muted: true,
+};
+
+// Preferencias locales de quien mira: lo ultimo visto por serie y su lista.
+const local = {
+  read(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(`tt.${key}`)) ?? fallback; } catch { return fallback; }
+  },
+  write(key, value) {
+    try { localStorage.setItem(`tt.${key}`, JSON.stringify(value)); } catch {}
+  },
+};
+
+// Modo demo (artefacto compartible): no hay servidor. El catalogo va embebido, las reglas son las del
+// servidor (rules.mjs) y el usuario de ejemplo se guarda solo en el navegador de quien mira.
+const CATALOG = {"mediaBase":"media/","channels":[{"id":"stonks-park","name":"STONKS PARK","handle":"@stonkspark","about":"Animated parody and satire of the crypto and internet world. New episodes every week on YouTube.","color":"#ffd23f","external":{"platform":"YouTube","url":"https://www.youtube.com/@stonkspark"},"tiers":[{"id":"t1","level":1,"name":"Bullish","price":2.99,"perks":["Support the creator directly","Member badge on your profile"]},{"id":"t2","level":2,"name":"Diamond","price":5.99,"perks":["Everything in Bullish","Members-only drops when the creator posts them here"]},{"id":"t3","level":3,"name":"Whale","price":11.99,"perks":["Everything in Diamond","Early access when the creator uploads here first"]}]},{"id":"zartofrd","name":"RD","handle":"@zartofrd","about":"Short AI edits that drop history and pop culture into new worlds. New clips almost every day on TikTok.","color":"#ff7a1a","external":{"platform":"TikTok","url":"https://www.tiktok.com/@zartofrd"},"tiers":[{"id":"t1","level":1,"name":"Bullish","price":1.99,"perks":["Support the creator directly","Member badge on your profile"]},{"id":"t2","level":2,"name":"Diamond","price":3.99,"perks":["Everything in Bullish","Members-only drops when the creator posts them here"]},{"id":"t3","level":3,"name":"Whale","price":7.99,"perks":["Everything in Diamond","Early access when the creator uploads here first"]}]},{"id":"hdm-mov","name":"hdm.mov","handle":"@hdm.mov","about":"Original edits by hdm.mov, hosted on Trenchers TV.","color":"#ff3b30","tiers":[{"id":"t1","level":1,"name":"Bullish","price":1.99,"perks":["Every paid episode of the channel","Member badge on your profile"]},{"id":"t2","level":2,"name":"Diamond","price":3.99,"perks":["Everything in Bullish","Members-only episodes"]},{"id":"t3","level":3,"name":"Whale","price":7.99,"perks":["Everything in Diamond","Early access to the newest episode","Your name in the credits"]}]}],"series":[{"id":"stonks-park-s2","channelId":"stonks-park","format":"horizontal","source":"youtube","title":"Stonks Park · Season 2","ticker":"$STONKS","tags":["Animated","Satire","Weekly"],"synopsis":"Animated parody of the crypto and internet world. Season 2 opens on Hollywood Boulevard and goes bigger every week.","accent":"#ffd23f","poster":"https://i.ytimg.com/vi/BpLRdqGoBw0/maxresdefault.jpg","episodes":[{"id":"stonks-park-s2-01","n":1,"title":"In Memory of France","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1791298800000,"seconds":242,"platform":"YouTube","youtubeId":"QIIPuhnH79A","thumb":"https://i.ytimg.com/vi/QIIPuhnH79A/mqdefault.jpg"},{"id":"stonks-park-s2-02","n":2,"title":"FaZe Banks, Blaze & Gainzy vs Jean Phil at Pump.fun","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1791558000000,"seconds":266,"platform":"YouTube","youtubeId":"TkHOn_S9opQ","thumb":"https://i.ytimg.com/vi/TkHOn_S9opQ/mqdefault.jpg"},{"id":"stonks-park-s2-03","n":3,"title":"Occupy Mars: The Race for Super Intelligence","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1791817200000,"seconds":268,"platform":"YouTube","youtubeId":"d4Ja50KjAN4","thumb":"https://i.ytimg.com/vi/d4Ja50KjAN4/mqdefault.jpg"},{"id":"stonks-park-s2-04","n":4,"title":"Europe Strikes Back: Benny Johnson & ALX in Paris","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1792422000000,"seconds":279,"platform":"YouTube","youtubeId":"BpLRdqGoBw0","thumb":"https://i.ytimg.com/vi/BpLRdqGoBw0/mqdefault.jpg"}]},{"id":"hdm-pokemon","channelId":"hdm-mov","format":"horizontal","source":"own","title":"Pokémon IRL","ticker":"$HDM","tags":["AI Edits","Pokémon","Real Life"],"synopsis":"What if Pokémon lived in the real world? Charizard at the barbecue, Mr. Mime in traffic, Gyarados at the beach. Latin America first, then Brazil.","accent":"#ff3b30","poster":"media/hdm-pokemon.jpg","episodes":[{"id":"hdm-pokemon-01","n":1,"title":"Pokémon in Latin America","named":true,"access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794262027000,"seconds":37,"thumb":"media/hdm-pokemon-01.jpg"},{"id":"hdm-pokemon-02","n":2,"title":"Pokémon in Brazil","named":true,"access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794522759000,"seconds":30,"thumb":"media/hdm-pokemon-02.jpg"}]},{"id":"hdm-shorts","channelId":"hdm-mov","format":"vertical","source":"own","title":"Pokémon IRL · Shorts","ticker":"$HDM","tags":["AI Edits","Pokémon","Real Life"],"synopsis":"What if Pokémon lived in the real world? Charizard at the barbecue, Krabby at the beach. Vertical cut.","accent":"#ff3b30","poster":"media/hdm-shorts.jpg","episodes":[{"id":"hdm-shorts-01","n":1,"title":"Pokémon in Latin America","named":true,"access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794546225000,"seconds":37,"thumb":null},{"id":"hdm-shorts-02","n":2,"title":"Pokémon in Brazil","named":true,"access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794546230000,"seconds":30,"thumb":null}]},{"id":"rd-clips","channelId":"zartofrd","format":"vertical","source":"tiktok","title":"RD Clips","ticker":"$RD","tags":["AI Edits","History","Daily"],"synopsis":"Aztec warriors, shinobi mafias and Mario on the run. Short AI edits from the RD channel on TikTok.","accent":"#ff7a1a","poster":"media/rd-clips.jpg","episodes":[{"id":"rd-clips-01","n":1,"title":"museum baddies","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793434196000,"seconds":15,"platform":"TikTok","tiktokId":"7702741150309879054","thumb":null},{"id":"rd-clips-02","n":2,"title":"timeless pt.2","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793462252000,"seconds":21,"platform":"TikTok","tiktokId":"7702861638839323918","thumb":null},{"id":"rd-clips-03","n":3,"title":"whatever she wants","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793623411000,"seconds":28,"platform":"TikTok","tiktokId":"7703553652308413709","thumb":null},{"id":"rd-clips-04","n":4,"title":"aztec mode","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793629328000,"seconds":24,"platform":"TikTok","tiktokId":"7703579116271848718","thumb":null},{"id":"rd-clips-05","n":5,"title":"aztec mode pt.2","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793710964000,"seconds":23,"platform":"TikTok","tiktokId":"7703929714494164237","thumb":null},{"id":"rd-clips-06","n":6,"title":"they are back","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793878577000,"seconds":20,"platform":"TikTok","tiktokId":"7704649758039690510","thumb":null},{"id":"rd-clips-07","n":7,"title":"day in the life pt.9","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793957215000,"seconds":17,"platform":"TikTok","tiktokId":"7704987495208930574","thumb":null},{"id":"rd-clips-08","n":8,"title":"big ben","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1793974347000,"seconds":17,"platform":"TikTok","tiktokId":"7705061088093637902","thumb":null},{"id":"rd-clips-09","n":9,"title":"mario escaped","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794135532000,"seconds":16,"platform":"TikTok","tiktokId":"7705752772137815309","thumb":null},{"id":"rd-clips-10","n":10,"title":"not duck tales","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794314712000,"seconds":20,"platform":"TikTok","tiktokId":"7706522819277917453","thumb":null},{"id":"rd-clips-11","n":11,"title":"aztec mode pt.3","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794329491000,"seconds":19,"platform":"TikTok","tiktokId":"7706586345589722382","thumb":null},{"id":"rd-clips-12","n":12,"title":"shinobi mafia","access":"free","free":true,"price":0,"minTier":0,"publishedAt":1794408138000,"seconds":22,"platform":"TikTok","tiktokId":"7706924200182762766","thumb":null}]}],"coinPacks":[{"id":"c100","coins":100,"bonus":0,"price":0.99},{"id":"c300","coins":300,"bonus":30,"price":2.99},{"id":"c1000","coins":1000,"bonus":200,"price":9.99,"tag":"Popular"},{"id":"c2000","coins":2000,"bonus":600,"price":19.99},{"id":"c5000","coins":5000,"bonus":2500,"price":49.99,"tag":"Whale"}],"vipPlans":[{"id":"weekly","name":"Paper Hands","price":4.99,"days":7,"note":"Weekly pass. Cancel anytime."},{"id":"monthly","name":"Diamond Hands","price":14.99,"days":30,"note":"Monthly. Save 30% vs weekly.","tag":"Popular"},{"id":"yearly","name":"Whale Pass","price":99.99,"days":365,"note":"Yearly. Just $8.33 a month."}],"episodePrice":35,"startingCoins":50};
+// Reglas de Trenchers TV sobre el estado de un usuario: que puede ver, su feed, membresias, compras y el usuario
+// de ejemplo. Las usan el servidor (con usuarios guardados en disco) y el artefacto (con la cartera de demo en el
+// navegador), asi las dos versiones se comportan igual. Sin dependencias ni acceso a disco o red.
+// Este archivo se inserta tal cual en el artefacto (sin los "export"): no importar nada desde aca.
+
+const DEMO_EMAIL = 'demo@trenchers.test';
+const DAY = 24 * 60 * 60 * 1000;
+
+function createRules(catalog) {
+  const episodes = new Map();
+  for (const s of catalog.series) {
+    for (const ep of s.episodes) episodes.set(ep.id, { ...ep, seriesId: s.id, channelId: s.channelId });
+  }
+  const channel = (id) => catalog.channels.find((c) => c.id === id);
+
+  const isVip = (user) => !!user && user.vipUntil > Date.now();
+  const tierOf = (user, channelId) => user?.memberships[channelId] || 0;
+
+  // Episodios pagos: TRENCH, Holder Pass o cualquier nivel de membresia del canal.
+  // De miembros: solo la membresia del canal con el nivel minimo (el Holder Pass no los abre).
+  function canWatch(user, ep) {
+    if (ep.access === 'free') return true;
+    if (ep.access === 'members') return tierOf(user, ep.channelId) >= ep.minTier;
+    return isVip(user) || !!user?.unlocked.includes(ep.id) || tierOf(user, ep.channelId) >= 1;
+  }
+
+  // Episodios publicados de los canales que sigue el usuario, del mas nuevo al mas viejo.
+  function feedOf(user) {
+    if (!user) return [];
+    const now = Date.now();
+    return [...episodes.values()]
+      .filter((ep) => user.follows.includes(ep.channelId) && ep.publishedAt <= now)
+      .sort((a, b) => b.publishedAt - a.publishedAt)
+      .slice(0, 40)
+      .map((ep) => ({ episodeId: ep.id, seriesId: ep.seriesId, channelId: ep.channelId, publishedAt: ep.publishedAt, isNew: ep.publishedAt > user.feedSeenAt }));
+  }
+
+  // Lo que el cliente sabe del usuario.
+  function me(user) {
+    if (!user) return { user: null, coins: 0, vip: false, vipUntil: null, unlocked: [], follows: [], memberships: {}, feedUnseen: 0 };
+    return {
+      user: { email: user.email, demo: user.email === DEMO_EMAIL }, coins: user.coins, vip: isVip(user), vipUntil: user.vipUntil || null,
+      unlocked: user.unlocked, follows: user.follows, memberships: user.memberships, feedUnseen: feedOf(user).filter((i) => i.isNew).length,
+    };
+  }
+
+  // Respuesta a "quiero ver este episodio": [estado HTTP, cuerpo]. 200 trae el video (o el id en su plataforma);
+  // 401 pide entrar; 402 dice que hace falta: reason 'members' (membresia con minTier) o 'coins' (TRENCH).
+  function play(user, ep) {
+    if (canWatch(user, ep)) {
+      if (ep.platform) return [200, { platform: ep.platform, youtubeId: ep.youtubeId, tiktokId: ep.tiktokId, me: me(user) }];
+      return [200, { src: `${catalog.mediaBase}${ep.id}.mp4`, me: me(user) }];
+    }
+    const need = { locked: true, reason: ep.access, channelId: ep.channelId, minTier: ep.minTier, price: ep.price };
+    if (!user) return [401, { ...need, loginRequired: true, me: me(user) }];
+    return [402, { ...need, balance: user.coins, canAfford: ep.access === 'coins' && user.coins >= ep.price, me: me(user) }];
+  }
+
+  // Cada accion devuelve [estado HTTP, cuerpo] y cambia el usuario en el lugar; quien llama decide guardar.
+  const actions = {
+    unlock(user, { episodeId }) {
+      const ep = episodes.get(episodeId);
+      if (!ep) return [404, { error: 'Episode not found' }];
+      // Los episodios de miembros no se compran con TRENCH.
+      if (!canWatch(user, ep) && ep.access === 'coins' && user.coins >= ep.price) {
+        user.coins -= ep.price;
+        user.unlocked.push(ep.id);
+      }
+      return play(user, ep);
+    },
+    follow(user, { channelId, follow }) {
+      if (!channel(channelId)) return [404, { error: 'Channel not found' }];
+      user.follows = user.follows.filter((id) => id !== channelId);
+      if (follow) user.follows.push(channelId);
+      return [200, me(user)];
+    },
+    // Membresia simulada: fija el nivel del usuario en el canal (tierId null la cancela). Unirse tambien sigue al canal.
+    membership(user, { channelId, tierId }) {
+      const c = channel(channelId);
+      if (!c) return [404, { error: 'Channel not found' }];
+      const tier = c.tiers.find((t) => t.id === tierId);
+      if (tierId && !tier) return [404, { error: 'Tier not found' }];
+      if (tier) {
+        user.memberships[c.id] = tier.level;
+        if (!user.follows.includes(c.id)) user.follows.push(c.id);
+      } else {
+        delete user.memberships[c.id];
+      }
+      return [200, me(user)];
+    },
+    feedSeen(user) {
+      user.feedSeenAt = Date.now();
+      return [200, me(user)];
+    },
+    buyCoins(user, { packId }) {
+      const pack = catalog.coinPacks.find((p) => p.id === packId);
+      if (!pack) return [404, { error: 'Pack not found' }];
+      user.coins += pack.coins + pack.bonus;
+      return [200, me(user)];
+    },
+    vip(user, { planId }) {
+      const plan = catalog.vipPlans.find((p) => p.id === planId);
+      if (!plan) return [404, { error: 'Plan not found' }];
+      user.vipUntil = Math.max(Date.now(), user.vipUntil) + plan.days * DAY;
+      return [200, me(user)];
+    },
+    // Solo para la demo: el usuario de ejemplo vuelve a su estado de ejemplo; los demas al saldo inicial.
+    reset(user) {
+      if (user.email === DEMO_EMAIL) seedDemo(user);
+      else Object.assign(user, { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], memberships: {} });
+      return [200, me(user)];
+    },
+  };
+
+  // Estado del usuario de ejemplo: sigue todos los canales del catalogo, es miembro Diamond del primero
+  // y tiene novedades sin ver de la ultima semana y media.
+  function seedDemo(user) {
+    return Object.assign(user, {
+      coins: 120, vipUntil: 0,
+      unlocked: [],
+      follows: catalog.channels.map((c) => c.id),
+      memberships: { [catalog.channels[0].id]: 2 },
+      feedSeenAt: Date.now() - 10 * DAY,
+    });
+  }
+
+  // Usuario nuevo con los campos que usan las reglas.
+  function newUser(fields) {
+    return { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], follows: [], memberships: {}, feedSeenAt: Date.now(), created: Date.now(), ...fields };
+  }
+
+  return { episodes, canWatch, feedOf, me, play, actions, seedDemo, newUser };
+}
+
+const RULES = createRules(CATALOG);
+const DEMO_KEY = 'tt.demo.v2';
+let demoUser = null;
+try { demoUser = JSON.parse(localStorage.getItem(DEMO_KEY)) || null; } catch {}
+function demoSave() {
+  try {
+    if (demoUser) localStorage.setItem(DEMO_KEY, JSON.stringify(demoUser));
+    else localStorage.removeItem(DEMO_KEY);
+  } catch {}
+}
+const DEMO_ACTIONS = {
+  '/api/unlock': 'unlock', '/api/follow': 'follow', '/api/membership': 'membership', '/api/feed/seen': 'feedSeen',
+  '/api/buy-coins': 'buyCoins', '/api/vip': 'vip', '/api/reset': 'reset',
+};
+function demoApi(path, body = {}) {
+  if (path === '/api/catalog') return [200, CATALOG];
+  if (path === '/api/me') return [200, RULES.me(demoUser)];
+  if (path === '/api/feed') return [200, { items: RULES.feedOf(demoUser), me: RULES.me(demoUser) }];
+  if (path.startsWith('/api/play/')) {
+    const ep = RULES.episodes.get(path.slice('/api/play/'.length));
+    return ep ? RULES.play(demoUser, ep) : [404, { error: 'Episode not found' }];
+  }
+  if (path === '/api/auth/demo') {
+    demoUser = demoUser || RULES.seedDemo(RULES.newUser({ email: DEMO_EMAIL }));
+    demoSave();
+    return [200, RULES.me(demoUser)];
+  }
+  if (path === '/api/auth/logout') {
+    demoUser = null;
+    demoSave();
+    return [200, RULES.me(null)];
+  }
+  if (!demoUser) return [401, { loginRequired: true, error: 'Start the demo first.', me: RULES.me(null) }];
+  const action = RULES.actions[DEMO_ACTIONS[path]];
+  if (!action) return [404, { error: 'Not found' }];
+  const result = action(demoUser, body);
+  demoSave();
+  return result;
+}
+
+async function api(path, body) {
+  const [status, data] = demoApi(path, body);
+  if (data.me) setMe(data.me);
+  return { status, data };
+}
+
+function setMe(me) {
+  state.me = me;
+  $('#coin-count').textContent = me.coins.toLocaleString('en-US');
+  $('.coins').hidden = !me.user;
+  $('.vip-badge').hidden = !me.vip;
+  const badge = $('#feed-badge');
+  badge.hidden = !me.feedUnseen;
+  badge.textContent = me.feedUnseen > 9 ? '9+' : String(me.feedUnseen || '');
+  const account = $('#account-btn');
+  account.classList.toggle('signed-in', !!me.user);
+  account.textContent = me.user ? me.user.email[0].toUpperCase() : 'Start demo';
+  account.setAttribute('aria-label', me.user ? 'Demo account' : 'Start demo');
+  document.dispatchEvent(new CustomEvent('me-changed'));
+}
+
+function toast(text) {
+  const el = $('#toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+const seriesById = (id) => state.catalog.series.find((s) => s.id === id);
+const channelById = (id) => state.catalog.channels.find((c) => c.id === id);
+const episodeById = (id) => state.episodes.get(id);
+const tierIn = (channelId) => state.me.memberships?.[channelId] || 0;
+const tierOfLevel = (c, level) => c.tiers.find((t) => t.level === level);
+// Misma regla que el servidor: los episodios de miembros solo los abre la membresia del canal.
+function isUnlocked(ep) {
+  if (ep.access === 'free') return true;
+  if (ep.access === 'members') return tierIn(ep.channelId) >= ep.minTier;
+  return state.me.vip || state.me.unlocked.includes(ep.id) || tierIn(ep.channelId) >= 1;
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const fmtPrice = (n) => `$${n.toFixed(2)}`;
+function ago(ts) {
+  const days = Math.floor((Date.now() - ts) / 86400000);
+  if (days < 1) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 30) return `${days} days ago`;
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+// Sello redondo con las iniciales y el color del canal.
+function channelAvatar(c, size = '') {
+  const initials = c.name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+  return `<span class="ch-avatar ${size}" style="--ch:${c.color}">${initials}</span>`;
+}
+// Que hace falta para ver un episodio, en una etiqueta corta.
+function accessLabel(ep) {
+  if (ep.platform) return `Free on ${ep.platform}`;
+  if (ep.access === 'free') return 'Free';
+  if (ep.access === 'members') {
+    const t = tierOfLevel(channelById(ep.channelId), ep.minTier);
+    return isUnlocked(ep) ? `Members · ${t.name}` : `${t.name} members`;
+  }
+  return isUnlocked(ep) ? 'Unlocked' : `<i class="coin"></i>${ep.price} TRENCH`;
+}
+function lockMini(ep) {
+  if (isUnlocked(ep)) return '';
+  return `<span class="lock-mini ${ep.access === 'members' ? 'members' : ''}" title="${ep.access === 'members' ? 'Members only' : 'Locked'}">${ICONS.lock}</span>`;
+}
+// Sticker que tapa un episodio bloqueado: precio en TRENCH, o el nivel de membresia que pide.
+function lockCardHtml(ep, buttonAttrs) {
+  if (ep.access === 'members') {
+    const c = channelById(ep.channelId);
+    return `
+      <div class="lock-card members">
+        <div class="lock-icon">${ICONS.lock}</div>
+        <b>Episode ${ep.n} is for members</b>
+        <span>${esc(tierOfLevel(c, ep.minTier).name)} members of ${esc(c.name)}</span>
+        <button class="primary" ${buttonAttrs}>See memberships</button>
+      </div>`;
+  }
+  return `
+    <div class="lock-card">
+      <div class="lock-icon">${ICONS.lock}</div>
+      <b>Episode ${ep.n} is token-gated</b>
+      <span>Unlock for <i class="coin"></i>${ep.price}</span>
+      <button class="primary" ${buttonAttrs}>Unlock</button>
+    </div>`;
+}
+// Sin boton a la otra plataforma: si el video no se puede reproducir aca, se dice y nada mas.
+function externalCardHtml(ep, title = esc(ep.title), note = 'Plays in the Trenchers TV app') {
+  return `
+    <div class="ext-card">
+      <b>${title}</b>
+      <span>${note}</span>
+    </div>`;
+}
+
+// Clip de un canal externo en un slide vertical: reproductor de TikTok (o el link, si no se puede incrustar).
+// Se monta solo en el slide activo y se saca al salir, para no tener varios reproductores sonando.
+function mountExternal(slide, ep) {
+  let box = $('.ext-frame', slide);
+  if (!box) {
+    box = document.createElement('div');
+    box.className = 'ext-frame';
+    slide.prepend(box);
+  }
+  slide.classList.add('external');
+  if (EMBEDS_ALLOWED && ep.tiktokId) {
+    box.innerHTML = `
+      <iframe src="https://www.tiktok.com/player/v1/${encodeURIComponent(ep.tiktokId)}?autoplay=1&muted=1&loop=1&controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=0&music_info=0&description=0&rel=0" title="TikTok video player" allow="autoplay; encrypted-media; fullscreen"></iframe>`;
+  } else {
+    box.innerHTML = externalCardHtml(ep);
+  }
+}
+// El reproductor de TikTok avisa por postMessage si no puede reproducir (por ejemplo un error del servidor de
+// TikTok o un video que no se deja incrustar): en ese caso el slide pasa a mostrar el link al clip.
+window.addEventListener('message', (e) => {
+  if (!/^https:\/\/www\.tiktok\.com$/.test(e.origin)) return;
+  let msg = e.data;
+  if (typeof msg === 'string') { try { msg = JSON.parse(msg); } catch { return; } }
+  if (!msg || !['onError', 'onPlayerError'].includes(msg.type)) return;
+  const frame = [...document.querySelectorAll('.ext-frame iframe')].find((f) => f.contentWindow === e.source);
+  const slide = frame?.closest('.slide');
+  const ep = slide && episodeById(slide.dataset.ep || seriesById(slide.dataset.series)?.episodes[0].id);
+  if (ep) frame.parentElement.innerHTML = externalCardHtml(ep, esc(ep.title), "This clip can't play right now.");
+});
+
+function unmountExternal(slide) {
+  $('.ext-frame', slide)?.remove();
+  slide.classList.remove('external');
+}
+
+const byLine = (s) => `<a class="by" href="#/channel/${s.channelId}">${esc(channelById(s.channelId).handle)}</a>`;
+const isTv = (s) => s.format === 'horizontal';
+const reelsSeries = () => state.catalog.series.filter((s) => !isTv(s));
+const tvShows = () => state.catalog.series.filter(isTv);
+
+const ICONS = {
+  lock: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 9V7a5 5 0 0 0-10 0v2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-8-2a3 3 0 0 1 6 0v2H9Z"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3.1 4.5 6.9 4.5c2.1 0 3.6 1.1 5.1 3 1.5-1.9 3-3 5.1-3 3.8 0 6 3.9 4.5 7.3C19.5 16.4 12 21 12 21Z"/></svg>',
+  bookmark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1Z"/></svg>',
+  list: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 11h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 17h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>',
+  muted: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4zm12.3.3 1.4-1.4L20 10.2l2.3-2.3 1.4 1.4-2.3 2.3 2.3 2.3-1.4 1.4-2.3-2.3-2.3 2.3-1.4-1.4 2.3-2.3z"/></svg>',
+  sound: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4zm12 3a4 4 0 0 0-2-3.5v7A4 4 0 0 0 16 12Zm-2-8v2a6.5 6.5 0 0 1 0 12v2a8.5 8.5 0 0 0 0-16Z"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>',
+  full: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+};
+
+// ---------- Reproductor vertical (lo usan el feed y la pagina de episodio) ----------
+
+// Un slide por video. activate() lo hace sonar y pausa al resto; el observer lo llama al quedar a la vista.
+function createReel(container, slides, { onActive, onEnded } = {}) {
+  let active = null;
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.6) activate(entry.target);
+    }
+  }, { root: container, threshold: [0.6] });
+
+  function activate(slide) {
+    if (active === slide) return;
+    if (active) stop(active);
+    active = slide;
+    onActive?.(slide);
+  }
+
+  function stop(slide) {
+    const video = $('video', slide);
+    if (video) video.pause();
+    if (slide.classList.contains('external')) unmountExternal(slide);
+  }
+
+  for (const slide of slides) {
+    observer.observe(slide);
+    const video = $('video', slide);
+    video.addEventListener('timeupdate', () => {
+      if (video.duration) $('.progress i', slide).style.width = `${(video.currentTime / video.duration) * 100}%`;
+    });
+    video.addEventListener('ended', () => onEnded?.(slide));
+    video.addEventListener('play', () => slide.classList.remove('paused'));
+    video.addEventListener('pause', () => slide.classList.add('paused'));
+    $('.tap-zone', slide).addEventListener('click', () => {
+      if (!video.src) return;
+      if (video.paused) video.play().catch(() => {}); else video.pause();
+    });
+  }
+
+  return {
+    get active() { return active; },
+    activate,
+    scrollTo(slide, smooth = true) {
+      slide.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant', block: 'start' });
+      activate(slide);
+    },
+    destroy() { observer.disconnect(); for (const s of slides) stop(s); },
+  };
+}
+
+function playVideo(slide, src) {
+  const video = $('video', slide);
+  if (src && !video.src.endsWith(src)) video.src = src;
+  video.muted = state.muted;
+  video.play().catch(() => slide.classList.add('paused'));
+  syncMuteButtons();
+}
+
+function syncMuteButtons() {
+  document.querySelectorAll('.mute-btn').forEach((btn) => {
+    btn.innerHTML = state.muted ? ICONS.muted : ICONS.sound;
+    btn.setAttribute('aria-label', state.muted ? 'Unmute' : 'Mute');
+  });
+  document.querySelectorAll('.sound-hint').forEach((el) => { el.hidden = !state.muted; });
+  document.querySelectorAll('#view video').forEach((v) => { v.muted = state.muted; });
+}
+
+function toggleMute() {
+  state.muted = !state.muted;
+  syncMuteButtons();
+}
+
+function slideChrome() {
+  return `
+    <div class="tap-zone"></div>
+    <div class="big-play">${ICONS.play}</div>
+    <div class="progress"><i></i></div>
+    <button class="sound-hint" data-action="mute">${ICONS.muted}<span>Tap for sound, anon</span></button>`;
+}
+
+// ---------- For You: una serie por pantalla, arranca en el episodio 1 ----------
+
+function renderFeed() {
+  const list = reelsSeries();
+  view.innerHTML = `
+    <section class="reel-layout">
+      <div class="reel" id="reel">
+        ${list.map((s) => `
+          <article class="slide" data-series="${s.id}" style="--accent:${s.accent}">
+            <video playsinline loop preload="metadata"></video>
+            ${slideChrome()}
+            <div class="slide-info">
+              <span class="chip ticker">${esc(s.ticker)}</span><span class="chip">EP 1 / ${s.episodes.length}</span>
+              <h2>${esc(s.title)}</h2>
+              ${byLine(s)}
+              <p class="tags">${s.tags.map(esc).join(' · ')}</p>
+              <p class="synopsis">${esc(s.synopsis)}</p>
+              <a class="watch-btn" href="#/watch/${s.id}/${resumeEpisode(s)}">${ICONS.play}<span>${resumeEpisode(s) > 1 ? `Continue Ep. ${resumeEpisode(s)}` : 'Play'}</span></a>
+            </div>
+            ${railHtml(s)}
+          </article>`).join('')}
+      </div>
+    </section>`;
+  const reel = $('#reel');
+  const slides = [...reel.querySelectorAll('.slide')];
+  wireRail(reel);
+  const reelCtl = createReel(reel, slides, {
+    onActive(slide) {
+      const s = seriesById(slide.dataset.series);
+      const ep = s.episodes[0];
+      if (ep.platform) mountExternal(slide, ep); else playVideo(slide, `${state.catalog.mediaBase}${ep.id}.mp4`);
+    },
+  });
+  // El observer solo avisa al deslizar; el primero se activa a mano.
+  reelCtl.activate(slides[0]);
+  return reelCtl;
+}
+
+function railHtml(s, { episodesButton = true } = {}) {
+  const liked = local.read('liked', []).includes(s.id);
+  const saved = local.read('mylist', []).includes(s.id);
+  return `
+    <div class="rail">
+      <button class="rail-btn ${liked ? 'on' : ''}" data-action="like" data-series="${s.id}">${ICONS.heart}<span>${liked ? 'Bullish' : 'Bullish?'}</span></button>
+      <button class="rail-btn ${saved ? 'on' : ''}" data-action="save" data-series="${s.id}">${ICONS.bookmark}<span>${saved ? 'Watching' : 'Watchlist'}</span></button>
+      ${episodesButton ? `<button class="rail-btn" data-action="episodes" data-series="${s.id}">${ICONS.list}<span>Episodes</span></button>` : ''}
+      <button class="rail-btn mute-btn" data-action="mute"></button>
+    </div>`;
+}
+
+function wireRail(root) {
+  root.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const { action, series } = btn.dataset;
+    if (action === 'like' || action === 'save') {
+      const key = action === 'like' ? 'liked' : 'mylist';
+      const set = new Set(local.read(key, []));
+      if (set.has(series)) set.delete(series); else set.add(series);
+      local.write(key, [...set]);
+      const on = set.has(series);
+      btn.classList.toggle('on', on);
+      $('span', btn).textContent = action === 'like' ? (on ? 'Bullish' : 'Bullish?') : (on ? 'Watching' : 'Watchlist');
+      if (action === 'save') toast(on ? 'Added to Watchlist' : 'Removed from Watchlist');
+    }
+    if (action === 'episodes') openEpisodeSheet(seriesById(series));
+  });
+}
+
+function resumeEpisode(s) {
+  return local.read('progress', {})[s.id] || 1;
+}
+
+const watchHref = (s, n = resumeEpisode(s)) => (isTv(s) ? `#/tv/${s.id}/${n}` : `#/watch/${s.id}/${n}`);
+
+// Tarjeta de un estante: poster vertical para Reels, 16:9 para TV.
+function cardHtml(s, badge) {
+  return `
+    <a class="poster ${isTv(s) ? 'wide' : ''}" href="${watchHref(s)}">
+      <img src="${s.poster}" alt="${esc(s.title)}" loading="lazy">
+      <span class="ep-badge">${badge}</span>
+      <b>${esc(s.title)}</b>
+    </a>`;
+}
+
+// ---------- Discover: destacado + estantes de posters ----------
+
+function renderDiscover() {
+  const all = reelsSeries();
+  // Destacado: la primera serie con imagen real (miniatura de la plataforma); si no hay, la primera de Reels.
+  const hero = state.catalog.series.find((x) => /^https?:/.test(x.poster)) || all[0];
+  const progress = local.read('progress', {});
+  const continuing = state.catalog.series.filter((s) => progress[s.id] > 1);
+  const myList = state.catalog.series.filter((s) => local.read('mylist', []).includes(s.id));
+  const shelves = [
+    continuing.length && ['Continue Watching', continuing, true],
+    myList.length && ['Watchlist', myList],
+    ['Pumping in the Trenches', [all[2], all[0], all[3], all[1]]],
+    ['On Trenchers TV', tvShows()],
+    ['Fresh Launches', [all[3], all[1], all[2], all[0]]],
+    ['Degen Romance', [all[0], all[3], all[2]]],
+  ].filter(Boolean).map(([title, items, p]) => [title, [...new Set(items.filter(Boolean))], p])
+    // Con pocas series los estantes se repiten: queda solo el primero de cada contenido.
+    .filter(([, items], i, rows) => items.length && !rows.slice(0, i).some(([, prev]) => prev.filter(Boolean).map((x) => x.id).join() === items.map((x) => x.id).join()));
+  view.innerHTML = `
+    <section class="discover">
+      <div class="hero" style="--accent:${hero.accent}">
+        <img src="${hero.poster}" alt="">
+        <div class="hero-body">
+          <div class="hero-tags"><span class="chip hot">Pumping</span><span class="chip ticker">${esc(hero.ticker)}</span>${hero.tags.slice(0, 2).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+          <h1>${esc(hero.title)}</h1>
+          <p>${esc(hero.synopsis)}</p>
+          <a class="watch-btn light" href="${isTv(hero) ? watchHref(hero) : `#/watch/${hero.id}/${resumeEpisode(hero)}`}">${ICONS.play}<span>Play</span></a>
+        </div>
+      </div>
+      <h3 class="shelf-title">Channels</h3>
+      <div class="shelf">${state.catalog.channels.map(channelCardHtml).join('')}</div>
+      ${shelves.map(([title, items, withProgress]) => `
+        <h3 class="shelf-title">${title}</h3>
+        <div class="shelf">
+          ${items.map((s) => cardHtml(s, withProgress ? `Ep. ${progress[s.id]}` : `${s.episodes.length} eps`)).join('')}
+        </div>`).join('')}
+      <footer class="demo-foot">
+        Example channels, not affiliated. TRENCH are in-app credits, not a real token. Not financial advice.
+        <button data-action="reset">Reset demo</button>
+      </footer>
+    </section>`;
+}
+
+// ---------- Pagina de episodio: feed vertical de los episodios de una serie ----------
+
+function renderWatch(seriesId, startN) {
+  const s = seriesById(seriesId);
+  if (!s) { go('#/'); return null; }
+  view.innerHTML = `
+    <section class="watch" style="--accent:${s.accent}">
+      <a class="back-btn" href="#/discover" aria-label="Back">${ICONS.back}</a>
+      <div class="reel watch-reel" id="reel">
+        ${s.episodes.map((ep) => `
+          <article class="slide" data-ep="${ep.id}" data-n="${ep.n}">
+            <video playsinline preload="none" poster="${s.poster}"></video>
+            ${slideChrome()}
+            ${ep.free ? '' : `<div class="lock-layer">${lockCardHtml(ep, `data-action="unlock" data-ep="${ep.id}"`)}</div>`}
+            <div class="slide-info compact">
+              <h2>${esc(s.title)}</h2>
+              ${byLine(s)}
+              <p class="ep-line">${(ep.platform || ep.named) ? `${ep.n}. ${esc(ep.title)}` : `Episode ${ep.n} / ${s.episodes.length}`}</p>
+            </div>
+            ${railHtml(s)}
+          </article>`).join('')}
+      </div>
+      <aside class="side-panel">
+        <nav class="crumbs"><a href="#/channel/${s.channelId}">${esc(channelById(s.channelId).name)}</a> / <span>${esc(s.title)}</span> / <span id="crumb-ep"></span></nav>
+        <h1 id="watch-title"></h1>
+        <p class="synopsis">${esc(s.synopsis)}</p>
+        <div class="tag-row">${s.tags.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+        <div class="grid-host" id="grid-host"></div>
+      </aside>
+    </section>`;
+
+  const reel = $('#reel');
+  const slides = [...reel.querySelectorAll('.slide')];
+  wireRail(reel);
+  let currentN = startN;
+
+  const refreshGrid = () => {
+    $('#grid-host').innerHTML = episodeGridHtml(s, currentN);
+    $('#crumb-ep').textContent = `Episode ${currentN}`;
+    $('#watch-title').textContent = `Episode ${currentN} · ${s.title}`;
+    for (const slide of slides) {
+      const ep = s.episodes[slide.dataset.n - 1];
+      slide.classList.toggle('locked', !isUnlocked(ep));
+    }
+  };
+
+  async function load(slide) {
+    const ep = s.episodes[slide.dataset.n - 1];
+    const { status, data } = await api(`/api/play/${ep.id}`);
+    if (reelCtl.active !== slide) return;
+    if (status === 200) {
+      slide.classList.remove('locked');
+      if (data.platform) mountExternal(slide, ep); else playVideo(slide, data.src);
+    } else {
+      slide.classList.add('locked');
+      openStore({ episode: ep, series: s });
+    }
+  }
+
+  const reelCtl = createReel(reel, slides, {
+    onActive(slide) {
+      currentN = Number(slide.dataset.n);
+      // Guarda la ruta sin disparar hashchange (no hay que re-renderizar al deslizar).
+      currentHash = `#/watch/${s.id}/${currentN}`;
+      const progress = local.read('progress', {});
+      progress[s.id] = currentN;
+      local.write('progress', progress);
+      refreshGrid();
+      load(slide);
+    },
+    onEnded(slide) {
+      const next = slides[Number(slide.dataset.n)];
+      if (next) reelCtl.scrollTo(next); else toast('Series complete. WAGMI.');
+    },
+  });
+
+  reel.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="unlock"]');
+    if (btn) openStore({ episode: s.episodes.find((x) => x.id === btn.dataset.ep), series: s });
+  });
+  $('#grid-host').addEventListener('click', (e) => onGridClick(e, s, reelCtl, slides));
+  // Al comprar o desbloquear desde el modal: refresca candados y, si el actual ya se puede ver, lo reproduce.
+  const onMe = () => {
+    const slide = reelCtl.active;
+    const wasLocked = slide?.classList.contains('locked');
+    refreshGrid();
+    if (wasLocked && !slide.classList.contains('locked')) load(slide);
+  };
+  document.addEventListener('me-changed', onMe);
+  watchCtl = { series: s, reel: reelCtl, slides };
+
+  reelCtl.scrollTo(slides[startN - 1] || slides[0], false);
+  return {
+    destroy() {
+      reelCtl.destroy();
+      document.removeEventListener('me-changed', onMe);
+      watchCtl = null;
+    },
+  };
+}
+
+let watchCtl = null;
+
+// Grilla de episodios por rangos de 30, con candado en los que no estan desbloqueados.
+function episodeGridHtml(s, currentN, range = Math.floor((currentN - 1) / 30)) {
+  const ranges = [];
+  for (let i = 0; i < s.episodes.length; i += 30) ranges.push([i + 1, Math.min(i + 30, s.episodes.length)]);
+  const [from, to] = ranges[range];
+  const free = s.episodes.filter((e) => e.free).length;
+  return `
+    <div class="grid-head">
+      <div class="ranges">${ranges.map(([a, b], i) => `<button class="${i === range ? 'on' : ''}" data-range="${i}">${a}-${b}</button>`).join('')}</div>
+      <span class="grid-note">${state.me.vip ? 'Holder Pass: every episode unlocked' : `${free} free · then <i class="coin"></i>${state.catalog.episodePrice} each`}</span>
+    </div>
+    <div class="ep-grid">
+      ${s.episodes.slice(from - 1, to).map((ep) => `
+        <button class="ep-cell ${ep.n === currentN ? 'current' : ''} ${ep.n < currentN ? 'seen' : ''} ${isUnlocked(ep) ? '' : 'is-locked'}" data-n="${ep.n}">
+          ${ep.n}
+          ${ep.n === currentN ? '<span class="eq"><i></i><i></i><i></i></span>' : ''}
+          ${lockMini(ep)}
+        </button>`).join('')}
+    </div>`;
+}
+
+function onGridClick(e, s, reelCtl, slides) {
+  const rangeBtn = e.target.closest('[data-range]');
+  if (rangeBtn) {
+    const host = e.currentTarget;
+    host.innerHTML = episodeGridHtml(s, reelCtl.active ? Number(reelCtl.active.dataset.n) : 1, Number(rangeBtn.dataset.range));
+    return;
+  }
+  const cell = e.target.closest('.ep-cell');
+  if (!cell) return;
+  closeModal();
+  const n = Number(cell.dataset.n);
+  if (reelCtl && slides) reelCtl.scrollTo(slides[n - 1], false);
+  else go(`#/watch/${s.id}/${n}`);
+}
+
+function openEpisodeSheet(s) {
+  const currentN = watchCtl?.series.id === s.id && watchCtl.reel.active ? Number(watchCtl.reel.active.dataset.n) : resumeEpisode(s);
+  showModal(`
+    <div class="sheet-head">
+      <img src="${s.poster}" alt="">
+      <div><b>${esc(s.title)}</b><span>${s.episodes.length} episodes</span></div>
+      <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+    </div>
+    <div class="grid-host" id="sheet-grid">${episodeGridHtml(s, currentN)}</div>`, 'sheet');
+  $('#sheet-grid').addEventListener('click', (e) => {
+    if (watchCtl?.series.id === s.id) onGridClick(e, s, watchCtl.reel, watchCtl.slides);
+    else onGridClick(e, s);
+  });
+}
+
+// ---------- Modo TV: shows horizontales 16:9 ----------
+
+function tvPlayerHtml(poster = '') {
+  return `
+    <div class="tv-player paused">
+      <video playsinline preload="metadata" ${poster ? `poster="${poster}"` : ''}></video>
+      <div class="tap-zone"></div>
+      <div class="big-play">${ICONS.play}</div>
+      <div class="tv-lock" hidden></div>
+      <div class="tv-yt" hidden></div>
+      <div class="tv-controls">
+        <button class="tv-btn" data-tv="toggle" aria-label="Play">${ICONS.play}</button>
+        <div class="tv-seek" role="slider" aria-label="Seek"><i></i></div>
+        <span class="tv-time">0:00</span>
+        <button class="tv-btn mute-btn" data-action="mute"></button>
+        <button class="tv-btn" data-tv="full" aria-label="Full screen">${ICONS.full}</button>
+      </div>
+    </div>`;
+}
+
+// API del reproductor de YouTube, cargada una sola vez y solo cuando hace falta (avisa si un video no se puede incrustar).
+let youTubeApi = null;
+function loadYouTubeApi() {
+  if (!youTubeApi) {
+    youTubeApi = new Promise((resolve, reject) => {
+      window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.onerror = () => { youTubeApi = null; reject(new Error('YouTube API did not load')); };
+      document.head.append(script);
+    });
+  }
+  return youTubeApi;
+}
+
+const fmtTime = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+// Controles propios del reproductor 16:9: play/pausa, barra para saltar, tiempo, sonido y pantalla completa.
+function wireTvPlayer(el, { onEnded } = {}) {
+  const video = $('video', el);
+  const toggleBtn = $('[data-tv="toggle"]', el);
+  const toggle = () => {
+    if (!video.src) return;
+    if (video.paused) video.play().catch(() => {}); else video.pause();
+  };
+  $('.tap-zone', el).addEventListener('click', toggle);
+  toggleBtn.addEventListener('click', toggle);
+  video.addEventListener('play', () => { el.classList.remove('paused'); toggleBtn.innerHTML = ICONS.pause; });
+  video.addEventListener('pause', () => { el.classList.add('paused'); toggleBtn.innerHTML = ICONS.play; });
+  video.addEventListener('timeupdate', () => {
+    if (!video.duration) return;
+    $('.tv-seek i', el).style.width = `${(video.currentTime / video.duration) * 100}%`;
+    $('.tv-time', el).textContent = `${fmtTime(video.currentTime)} / ${fmtTime(video.duration)}`;
+  });
+  video.addEventListener('ended', () => onEnded?.());
+  $('.tv-seek', el).addEventListener('click', (e) => {
+    if (!video.duration) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    video.currentTime = ((e.clientX - box.left) / box.width) * video.duration;
+  });
+  $('[data-tv="full"]', el).addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (el.requestFullscreen) el.requestFullscreen();
+    else video.webkitEnterFullscreen?.();
+  });
+  return {
+    video,
+    play(src) {
+      if (!video.src.endsWith(src)) video.src = src;
+      video.muted = state.muted;
+      video.play().catch(() => el.classList.add('paused'));
+      syncMuteButtons();
+    },
+    // Episodio de un canal externo: lo reproduce el reproductor de YouTube, con sus propios controles.
+    // Si el dueno o un reclamo de derechos no deja verlo fuera de YouTube, se ofrece abrirlo alla.
+    external(ep) {
+      video.pause();
+      el.classList.add('external');
+      const box = $('.tv-yt', el);
+      box.hidden = false;
+      if (!EMBEDS_ALLOWED || !ep.youtubeId) {
+        box.innerHTML = externalCardHtml(ep);
+        return;
+      }
+      const id = ep.youtubeId;
+      box.innerHTML = '<div class="yt-target"></div>';
+      loadYouTubeApi().then((YT) => {
+        const target = $('.yt-target', box);
+        if (!target) return;
+        new YT.Player(target, {
+          videoId: id,
+          host: 'https://www.youtube-nocookie.com',
+          playerVars: { autoplay: 1, mute: 1, playsinline: 1, rel: 0 },
+          events: {
+            onError() {
+              if (!box.isConnected || box.hidden) return;
+              box.innerHTML = externalCardHtml(ep, esc(ep.title), "This episode can't play here.");
+            },
+          },
+        });
+      }).catch(() => {
+        box.innerHTML = externalCardHtml(ep, esc(ep.title), "The player didn't load.");
+      });
+    },
+    stop() {
+      el.classList.remove('external');
+      const box = $('.tv-yt', el);
+      box.hidden = true;
+      box.innerHTML = '';
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      $('.tv-seek i', el).style.width = '0';
+      $('.tv-time', el).textContent = '0:00';
+    },
+    // Con un episodio bloqueado tapa el video con el sticker de desbloqueo; con null lo saca.
+    lock(ep) {
+      const layer = $('.tv-lock', el);
+      el.classList.toggle('locked', !!ep);
+      layer.hidden = !ep;
+      layer.innerHTML = ep ? lockCardHtml(ep, 'data-tv="unlock"') : '';
+    },
+  };
+}
+
+// Tarjeta de un episodio: miniatura 16:9 en TV, poster de la serie en Reels.
+function episodeCardHtml(s, ep) {
+  return `
+    <a class="poster ${isTv(s) ? 'wide' : ''}" href="${watchHref(s, ep.n)}">
+      <img src="${ep.thumb || s.poster}" alt="" loading="lazy">
+      <span class="ep-badge">EP ${ep.n}</span>
+      ${lockMini(ep)}
+      <b>${esc(s.title)}</b>
+    </a>`;
+}
+
+function renderTvHome() {
+  const shows = tvShows();
+  const hero = shows[0];
+  const progress = local.read('progress', {});
+  const continuing = shows.filter((s) => progress[s.id] > 1);
+  // Los primeros episodios de cada show, intercalados.
+  const fresh = [];
+  for (let n = 1; n <= 4; n++) for (const s of shows) if (s.episodes[n - 1]) fresh.push([s, s.episodes[n - 1]]);
+  const resume = resumeEpisode(hero);
+  view.innerHTML = `
+    <section class="tv-home">
+      <div class="tv-hero" style="--accent:${hero.accent}">
+        <div class="tv-hero-player">${tvPlayerHtml()}</div>
+        <div class="tv-hero-info">
+          <div class="hero-tags"><span class="chip hot">On air</span><span class="chip ticker">${esc(hero.ticker)}</span>${hero.tags.slice(0, 2).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+          <h1>${esc(hero.title)}</h1>
+          <p>${esc(hero.synopsis)}</p>
+          <a class="watch-btn" href="${watchHref(hero)}">${ICONS.play}<span>${resume > 1 ? `Continue Ep. ${resume}` : 'Watch Show'}</span></a>
+        </div>
+      </div>
+      ${continuing.length ? `<h3 class="shelf-title">Continue Watching</h3>
+        <div class="shelf">${continuing.map((s) => cardHtml(s, `Ep. ${progress[s.id]}`)).join('')}</div>` : ''}
+      <h3 class="shelf-title">All Shows</h3>
+      <div class="shelf">${shows.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>
+      <h3 class="shelf-title">Fresh Episodes</h3>
+      <div class="shelf">${fresh.map(([s, ep]) => episodeCardHtml(s, ep)).join('')}</div>
+    </section>`;
+  // El destacado se reproduce solo, en silencio y en loop, como un canal al aire.
+  const player = wireTvPlayer($('.tv-player', view));
+  player.video.loop = true;
+  if (hero.episodes[0].platform) player.external(hero.episodes[0]);
+  else player.play(`${state.catalog.mediaBase}${hero.episodes[0].id}.mp4`);
+  return { destroy() { player.video.pause(); } };
+}
+
+function renderTvWatch(showId, startN) {
+  const s = seriesById(showId);
+  if (!s || !isTv(s)) { go('#/tv'); return null; }
+  const liked = local.read('liked', []).includes(s.id);
+  const saved = local.read('mylist', []).includes(s.id);
+  const free = s.episodes.filter((e) => e.free).length;
+  const c = channelById(s.channelId);
+  view.innerHTML = `
+    <section class="tv-watch" style="--accent:${s.accent}">
+      <div class="tv-main">
+        ${tvPlayerHtml(s.poster)}
+        <div class="tv-meta">
+          <nav class="crumbs"><a href="#/tv">TV</a> / <a href="#/channel/${c.id}">${esc(c.name)}</a> / <span>${esc(s.title)}</span></nav>
+          <h1 id="tv-title"></h1>
+          <div class="tv-actions">
+            <button class="pill-btn ${liked ? 'on' : ''}" data-action="like" data-series="${s.id}">${ICONS.heart}<span>${liked ? 'Bullish' : 'Bullish?'}</span></button>
+            <button class="pill-btn ${saved ? 'on' : ''}" data-action="save" data-series="${s.id}">${ICONS.bookmark}<span>${saved ? 'Watching' : 'Watchlist'}</span></button>
+          </div>
+          <div class="tag-row"><span class="chip ticker">${esc(s.ticker)}</span>${s.tags.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+          <p class="synopsis">${esc(s.synopsis)}</p>
+          ${c.external ? `<p class="ext-note">Example channel, not affiliated with ${esc(c.name)}. Episodes play from ${c.external.platform}. <a href="${c.external.url}" target="_blank" rel="noopener">Open the channel on ${c.external.platform}</a></p>` : ''}
+        </div>
+      </div>
+      <aside class="tv-list">
+        <div class="tv-list-head"><b>Episodes</b><span class="grid-note">${c.external ? `Free on ${c.external.platform}` : `${free} free · then <i class="coin"></i>${state.catalog.episodePrice} each`}</span></div>
+        <div id="tv-eps"></div>
+      </aside>
+    </section>`;
+
+  let currentN = startN;
+  const listEl = $('#tv-eps');
+  const playerEl = $('.tv-player', view);
+
+  const refresh = () => {
+    const cur = s.episodes[currentN - 1];
+    $('#tv-title').textContent = (cur.platform || cur.named) ? cur.title : `Episode ${currentN} · ${s.title}`;
+    listEl.innerHTML = s.episodes.map((ep) => `
+      <button class="tv-ep ${ep.n === currentN ? 'current' : ''} ${isUnlocked(ep) ? '' : 'is-locked'}" data-n="${ep.n}">
+        <span class="tv-ep-thumb">
+          <img src="${ep.thumb || s.poster}" alt="" loading="lazy">
+          ${lockMini(ep)}
+          ${ep.n === currentN ? '<span class="eq"><i></i><i></i><i></i></span>' : ''}
+        </span>
+        <span class="tv-ep-text"><b>${(ep.platform || ep.named) ? `${ep.n}. ${esc(ep.title)}` : `Episode ${ep.n}`}</b><small>${accessLabel(ep)}</small></span>
+      </button>`).join('');
+  };
+
+  async function show(n) {
+    currentN = n;
+    const ep = s.episodes[n - 1];
+    currentHash = `#/tv/${s.id}/${n}`;
+    const progress = local.read('progress', {});
+    progress[s.id] = n;
+    local.write('progress', progress);
+    refresh();
+    player.stop();
+    const { status, data } = await api(`/api/play/${ep.id}`);
+    if (currentN !== n) return;
+    if (status === 200) {
+      player.lock(null);
+      if (data.platform) player.external(ep); else player.play(data.src);
+    } else {
+      player.lock(ep);
+      openStore({ episode: ep, series: s });
+    }
+  }
+
+  const player = wireTvPlayer(playerEl, {
+    onEnded() {
+      if (currentN < s.episodes.length) show(currentN + 1); else toast('Season complete. WAGMI.');
+    },
+  });
+  playerEl.addEventListener('click', (e) => {
+    if (e.target.closest('[data-tv="unlock"]')) openStore({ episode: s.episodes[currentN - 1], series: s });
+  });
+  listEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.tv-ep');
+    if (item) show(Number(item.dataset.n));
+  });
+  wireRail($('.tv-actions', view));
+  // Al comprar o desbloquear desde el modal: refresca la lista y, si el actual ya se puede ver, lo reproduce.
+  const onMe = () => {
+    const wasLocked = playerEl.classList.contains('locked');
+    refresh();
+    if (wasLocked && isUnlocked(s.episodes[currentN - 1])) show(currentN);
+  };
+  document.addEventListener('me-changed', onMe);
+
+  show(Math.min(startN, s.episodes.length));
+  return {
+    destroy() {
+      player.video.pause();
+      document.removeEventListener('me-changed', onMe);
+    },
+  };
+}
+
+// ---------- Canales: pagina, membresias por nivel y feed de los que seguis ----------
+
+function channelCardHtml(c) {
+  const tier = tierIn(c.id);
+  return `
+    <a class="ch-card" href="#/channel/${c.id}" style="--ch:${c.color}">
+      ${channelAvatar(c, 'lg')}
+      <b>${esc(c.name)}</b>
+      <span>${esc(c.handle)}</span>
+      ${tier ? `<span class="chip member-chip">${esc(tierOfLevel(c, tier).name)}</span>` : state.me.follows.includes(c.id) ? '<span class="chip">Following</span>' : ''}
+    </a>`;
+}
+
+// Niveles de un canal. minTier atenua los niveles que no alcanzan para el episodio que se quiere ver.
+function tiersHtml(c, minTier = 0) {
+  const current = tierIn(c.id);
+  return `
+    <div class="tier-grid">
+      ${c.tiers.map((t) => `
+        <div class="tier-card ${t.level === current ? 'current' : ''} ${t.level < minTier ? 'dim' : ''}" style="--tier-n:${t.level}">
+          <span class="tier-name">${esc(t.name)}</span>
+          <b>${fmtPrice(t.price)}<small>/month</small></b>
+          <ul>${t.perks.map((perk) => `<li>${esc(perk)}</li>`).join('')}</ul>
+          ${t.level === current ? '<span class="chip">Your tier</span>'
+            : `<button class="primary" data-tier="${t.id}" data-channel="${c.id}">${current ? (t.level > current ? 'Upgrade' : 'Switch') : 'Join'}</button>`}
+        </div>`).join('')}
+    </div>
+    ${current ? `<button class="link-btn" data-cancel="${c.id}">Cancel membership</button>` : ''}
+    <p class="test-note">${c.external
+      ? 'Example channel: this demo makes no payment and nothing reaches the creator.'
+      : 'Test mode: no real payment is made. In the real app memberships go straight to the channel.'}</p>`;
+}
+
+function openMembership(c, { episode = null } = {}) {
+  const tier = episode ? tierOfLevel(c, episode.minTier) : null;
+  showModal(`
+    <div class="sheet-head">
+      ${channelAvatar(c, 'lg')}
+      <div><b>${esc(c.name)}</b><span>${esc(c.handle)}</span></div>
+      <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+    </div>
+    ${episode ? `
+      <div class="unlock-box members">
+        <div>
+          <b>${esc(seriesById(episode.seriesId).title)} · Episode ${episode.n}</b>
+          <span>Members only. Needs ${esc(tier.name)} or higher; TRENCH and the Holder Pass do not open it.</span>
+        </div>
+      </div>` : ''}
+    <h4>Join ${esc(c.name)}</h4>
+    <p class="sub">Monthly membership with levels. Cancel anytime.</p>
+    ${tiersHtml(c, episode?.minTier || 0)}
+    <a class="link-btn" href="#/channel/${c.id}">Open the channel</a>`, 'store');
+}
+
+async function joinTier(channelId, tierId) {
+  const c = channelById(channelId);
+  const tier = c.tiers.find((t) => t.id === tierId);
+  if (!state.me.user) {
+    return openAuth({ reason: `Start the demo to join ${c.name} as ${tier.name}.`, then: () => joinTier(channelId, tierId) });
+  }
+  const { status, data } = await api('/api/membership', { channelId, tierId });
+  if (status !== 200) return toast('Could not join right now. Try again.');
+  setMe(data);
+  if (document.querySelector('.modal.store')) closeModal();
+  toast(`You're a ${tier.name} member of ${c.name}`);
+}
+
+async function cancelTier(channelId) {
+  const { status, data } = await api('/api/membership', { channelId, tierId: null });
+  if (status !== 200) return;
+  setMe(data);
+  toast('Membership canceled');
+}
+
+async function toggleFollow(c) {
+  if (!state.me.user) return openAuth({ reason: `Start the demo to follow ${c.name}.`, then: () => toggleFollow(c) });
+  const follow = !state.me.follows.includes(c.id);
+  const { data } = await api('/api/follow', { channelId: c.id, follow });
+  setMe(data);
+  toast(follow ? `Following ${c.name}. New episodes land in your feed.` : `Unfollowed ${c.name}`);
+}
+
+function renderChannel(channelId) {
+  const c = channelById(channelId);
+  if (!c) { go('#/discover'); return null; }
+  const shows = state.catalog.series.filter((s) => s.channelId === c.id);
+  const membersEps = shows.flatMap((s) => s.episodes.filter((ep) => ep.access === 'members').map((ep) => [s, ep]));
+  view.innerHTML = `
+    <section class="channel-page" style="--accent:${c.color}">
+      <div class="ch-hero">
+        ${channelAvatar(c, 'xl')}
+        <div class="ch-id">
+          <h1>${esc(c.name)}</h1>
+          <span class="ch-handle">${esc(c.handle)}</span>
+          <p>${esc(c.about)}</p>
+          ${c.external ? `<p class="ext-note">Example channel, not affiliated. Videos play from ${c.external.platform}. <a href="${c.external.url}" target="_blank" rel="noopener">Open on ${c.external.platform}</a></p>` : ''}
+        </div>
+        <div class="ch-actions" id="ch-actions"></div>
+      </div>
+      <h3 class="shelf-title">Shows</h3>
+      <div class="shelf">${shows.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>
+      <h3 class="shelf-title" id="membership">Membership</h3>
+      <div class="tier-host" id="tier-host"></div>
+      ${membersEps.length ? '<h3 class="shelf-title">Members only</h3><div class="shelf" id="members-shelf"></div>' : ''}
+    </section>`;
+  const refresh = () => {
+    const following = state.me.follows.includes(c.id);
+    const tier = tierIn(c.id);
+    $('#ch-actions').innerHTML = `
+      <button class="ghost" data-ch="follow">${following ? 'Following' : 'Follow'}</button>
+      ${tier ? `<span class="chip member-chip">${esc(tierOfLevel(c, tier).name)} member</span>` : '<button class="primary join" data-ch="join">Join</button>'}`;
+    $('#tier-host').innerHTML = tiersHtml(c);
+    if (membersEps.length) $('#members-shelf').innerHTML = membersEps.map(([s, ep]) => episodeCardHtml(s, ep)).join('');
+  };
+  view.addEventListener('click', onClick);
+  function onClick(e) {
+    const btn = e.target.closest('[data-ch]');
+    if (!btn) return;
+    if (btn.dataset.ch === 'follow') toggleFollow(c);
+    if (btn.dataset.ch === 'join') $('#membership').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.addEventListener('me-changed', refresh);
+  refresh();
+  return {
+    destroy() {
+      view.removeEventListener('click', onClick);
+      document.removeEventListener('me-changed', refresh);
+    },
+  };
+}
+
+// Feed: episodios nuevos de los canales que seguis, del mas reciente al mas viejo.
+async function renderFeedPage() {
+  if (!state.me.user) {
+    view.innerHTML = `
+      <section class="feed-page">
+        <div class="feed-empty">
+          <h1>Your feed</h1>
+          <p>Follow channels and their new episodes land here, newest first.</p>
+          <div class="account-actions">
+            <button class="primary" data-action="demo-login">Start demo</button>
+          </div>
+        </div>
+      </section>`;
+    return;
+  }
+  view.innerHTML = `
+    <section class="feed-page">
+      <div class="feed-wrap">
+        <h1>Your feed</h1>
+        <div class="following">${state.me.follows.map((id) => {
+          const c = channelById(id);
+          return `<a class="ch-chip" href="#/channel/${id}">${channelAvatar(c, 'sm')}${esc(c.name)}</a>`;
+        }).join('')}<a class="ch-chip add" href="#/discover">+ Find channels</a></div>
+        <div class="feed-list" id="feed-list"><p class="sub">Loading your feed…</p></div>
+      </div>
+    </section>`;
+  const { data } = await api('/api/feed');
+  const list = $('#feed-list');
+  if (!list) return;
+  if (!data.items.length) {
+    list.innerHTML = '<p class="sub">Nothing here yet. Follow channels from Discover and their new episodes show up here.</p>';
+    return;
+  }
+  list.innerHTML = data.items.map((item) => {
+    const ep = episodeById(item.episodeId);
+    const s = seriesById(item.seriesId);
+    const c = channelById(item.channelId);
+    return `
+      <a class="feed-item ${item.isNew ? 'is-new' : ''}" href="${watchHref(s, ep.n)}">
+        <span class="feed-thumb ${isTv(s) ? 'wide' : ''}"><img src="${ep.thumb || s.poster}" alt="" loading="lazy">${lockMini(ep)}</span>
+        <span class="feed-body">
+          <span class="feed-ch">${channelAvatar(c, 'sm')}<span>${esc(c.name)} · ${ago(item.publishedAt)}</span></span>
+          <b>${esc(s.title)}</b>
+          <span class="feed-ep">${(ep.platform || ep.named) ? esc(ep.title) : `Episode ${ep.n}`}</span>
+          <span class="feed-tags">${item.isNew ? '<span class="chip hot">New</span>' : ''}<span class="chip">${accessLabel(ep)}</span></span>
+        </span>
+      </a>`;
+  }).join('');
+  // Lo que se vio en esta visita deja de contar como nuevo (el badge se apaga despues de mirar).
+  if (data.items.some((i) => i.isNew)) setTimeout(() => api('/api/feed/seen', {}).then((res) => setMe(res.data)), 1500);
+}
+
+// ---------- Tienda: desbloqueo, VIP y paquetes de monedas ----------
+
+function openStore({ episode = null, series = null } = {}) {
+  if (!state.me.user) {
+    openAuth({
+      reason: episode ? `Start the demo to unlock Episode ${episode.n}.` : 'Start the demo to try TRENCH and the Holder Pass.',
+      then: () => {
+        // Si con la cuenta ya se puede ver (VIP o desbloqueado antes), no hace falta la tienda.
+        if (!episode || !isUnlocked(episode)) openStore({ episode, series });
+      },
+    });
+    return;
+  }
+  if (episode?.access === 'members') return openMembership(channelById(episode.channelId), { episode });
+  const render = () => {
+    const price = episode?.price ?? 0;
+    const affordable = episode && state.me.coins >= price;
+    return `
+      <div class="store-head">
+        ${episode ? `<span>Price <b><i class="coin"></i>${price}</b></span><span class="sep"></span>` : ''}
+        <span>Balance <b><i class="coin"></i>${state.me.coins.toLocaleString('en-US')}</b></span>
+        <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+      </div>
+      ${episode ? `
+        <div class="unlock-box ${affordable ? '' : 'short'}">
+          <div>
+            <b>${esc(series.title)} · Episode ${episode.n}</b>
+            <span>${affordable ? 'You have enough TRENCH to unlock this episode.' : `You need ${price - state.me.coins} more TRENCH.`}</span>
+          </div>
+          <button class="primary" data-action="spend" ${affordable ? '' : 'disabled'}>Unlock for <i class="coin"></i>${price}</button>
+        </div>` : ''}
+      <h4>Holder Pass · Unlock every series</h4>
+      <p class="sub">Unlimited viewing, no ads, 1080p.</p>
+      <div class="vip-grid">
+        ${state.catalog.vipPlans.map((p) => `
+          <button class="vip-card" data-vip="${p.id}">
+            ${p.tag ? `<span class="badge">${p.tag}</span>` : ''}
+            <span class="vip-name">${p.name}</span>
+            <b>${fmtPrice(p.price)}</b>
+            <span class="vip-note">${p.note}</span>
+          </button>`).join('')}
+      </div>
+      <h4>Buy TRENCH</h4>
+      <div class="coin-grid">
+        ${state.catalog.coinPacks.map((p) => `
+          <button class="coin-card" data-pack="${p.id}">
+            ${p.bonus ? `<span class="badge">+${Math.round((p.bonus / p.coins) * 100)}%</span>` : ''}
+            <span class="coin-stack"><i class="coin big"></i></span>
+            <span class="coin-amt">${p.coins.toLocaleString('en-US')}${p.bonus ? ` <em>+ ${p.bonus.toLocaleString('en-US')}</em>` : ''}</span>
+            <span class="coin-price">${fmtPrice(p.price)}</span>
+          </button>`).join('')}
+      </div>
+      <p class="test-note">Test mode: no real payment is made. TRENCH are in-app credits, not a token on any chain.</p>`;
+  };
+
+  const box = showModal(render(), 'store');
+  const rerender = () => { box.innerHTML = render(); };
+
+  async function spend() {
+    const { status } = await api('/api/unlock', { episodeId: episode.id });
+    if (status !== 200) return rerender();
+    closeModal();
+    toast(`LFG. Episode ${episode.n} unlocked · -${episode.price} TRENCH`);
+  }
+
+  box.addEventListener('click', async (e) => {
+    const target = e.target.closest('button');
+    if (!target) return;
+    if (target.dataset.action === 'spend') return spend();
+    if (target.dataset.vip) {
+      await api('/api/vip', { planId: target.dataset.vip }).then(({ data }) => setMe(data));
+      closeModal();
+      toast('Holder Pass active · every episode unlocked');
+      return;
+    }
+    if (target.dataset.pack) {
+      const pack = state.catalog.coinPacks.find((p) => p.id === target.dataset.pack);
+      await api('/api/buy-coins', { packId: pack.id }).then(({ data }) => setMe(data));
+      toast(`+${(pack.coins + pack.bonus).toLocaleString('en-US')} TRENCH added`);
+      // Como en la app real: si la compra vino del candado y ya alcanza, desbloquea solo.
+      if (episode && state.me.coins >= episode.price) return spend();
+      rerender();
+    }
+  });
+}
+
+// ---------- Cuenta: entrar, crear cuenta y salir ----------
+
+function openAuth({ reason = '', then = null } = {}) {
+  const box = showModal(`
+    <div class="auth-head">
+      <img src="icon.svg" alt="">
+      <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+    </div>
+    <h3>gm, anon</h3>
+    <p class="sub">${esc(reason || 'Start the demo to follow channels, join memberships and unlock episodes.')}</p>
+    <p class="sub">This is a shareable demo with no real accounts or payments. You get the demo account: it follows every channel, is a member of one and has TRENCH to spend. Everything is saved only in this browser.</p>
+    <button class="primary" data-demo-start>Start demo</button>`, 'auth');
+  $('[data-demo-start]', box).addEventListener('click', () => loginDemo(then));
+}
+
+// Entra con el usuario de ejemplo: sigue tres canales, es miembro de uno y tiene novedades en el feed.
+async function loginDemo(then) {
+  const { status, data } = await api('/api/auth/demo', {});
+  if (status !== 200) return toast('The demo account is not available right now.');
+  setMe(data);
+  closeModal();
+  toast(`Logged in as the demo account · ${data.feedUnseen} new in your feed`);
+  if (then) then(); else route();
+}
+
+function openAccount() {
+  const { me } = state;
+  if (!me.user) return openAuth();
+  showModal(`
+    <div class="auth-head">
+      <span class="avatar">${esc(me.user.email[0].toUpperCase())}</span>
+      <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+    </div>
+    <h3>${esc(me.user.email)}</h3>
+    ${me.user.demo ? '<span class="chip hot">Demo account</span>' : ''}
+    <dl class="account-stats">
+      <div><dt>TRENCH</dt><dd><i class="coin"></i>${me.coins.toLocaleString('en-US')}</dd></div>
+      <div><dt>Holder Pass</dt><dd>${me.vip ? `Until ${new Date(me.vipUntil).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Not active'}</dd></div>
+      <div><dt>Unlocked</dt><dd>${me.unlocked.length} episode${me.unlocked.length === 1 ? '' : 's'}</dd></div>
+    </dl>
+    <div class="account-subs">
+      <h4>Memberships</h4>
+      ${Object.keys(me.memberships).length ? Object.entries(me.memberships).map(([id, level]) => {
+        const c = channelById(id);
+        return `<a class="ch-row" href="#/channel/${id}">${channelAvatar(c, 'sm')}<span><b>${esc(c.name)}</b><small>${esc(tierOfLevel(c, level).name)} · ${fmtPrice(tierOfLevel(c, level).price)}/month</small></span></a>`;
+      }).join('') : '<p class="sub">No memberships yet. Join a channel from its page.</p>'}
+      <p class="sub">Following ${me.follows.length} channel${me.follows.length === 1 ? '' : 's'} · <a href="#/feed">Open your feed</a></p>
+    </div>
+    <div class="account-actions">
+      <button class="primary" data-action="store">Buy TRENCH</button>
+      <button class="ghost" data-action="reset">Reset demo</button>
+      <button class="ghost" data-action="logout">End demo</button>
+    </div>`, 'auth');
+}
+
+function showModal(html, kind) {
+  modalRoot.innerHTML = `<div class="backdrop" data-action="close"></div><div class="modal ${kind}" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.classList.add('has-modal');
+  return $('.modal', modalRoot);
+}
+
+function closeModal() {
+  modalRoot.innerHTML = '';
+  document.body.classList.remove('has-modal');
+}
+
+// ---------- Router y acciones globales ----------
+
+let current = null;
+
+function route() {
+  current?.destroy?.();
+  current = null;
+  closeModal();
+  window.scrollTo(0, 0);
+  const parts = currentHash.replace(/^#\/?/, '').split('/');
+  let tab = 'feed';
+  if (parts[0] === 'watch') {
+    tab = 'watch';
+    current = renderWatch(parts[1], Math.max(1, Number(parts[2]) || 1));
+  } else if (parts[0] === 'tv') {
+    tab = 'tv';
+    current = parts[1] ? renderTvWatch(parts[1], Math.max(1, Number(parts[2]) || 1)) : renderTvHome();
+  } else if (parts[0] === 'feed') {
+    tab = 'following';
+    renderFeedPage();
+  } else if (parts[0] === 'channel') {
+    tab = 'channel';
+    current = renderChannel(parts[1]);
+  } else if (parts[0] === 'discover') {
+    tab = 'discover';
+    renderDiscover();
+  } else {
+    current = renderFeed();
+  }
+  document.body.dataset.view = tab;
+  document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === (tab === 'watch' ? 'feed' : tab)));
+  syncMuteButtons();
+}
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const { action } = btn.dataset;
+  if (action === 'close') closeModal();
+  if (action === 'store') openStore();
+  if (action === 'account') openAccount();
+  if (action === 'demo-login') loginDemo();
+  if (action === 'mute') { e.stopPropagation(); toggleMute(); }
+  if (action === 'logout') {
+    await api('/api/auth/logout', {}).then(({ data }) => setMe(data));
+    toast('gn, anon');
+    route();
+  }
+  if (action === 'reset') {
+    if (state.me.user) await api('/api/reset', {}).then(({ data }) => setMe(data));
+    ['progress', 'liked', 'mylist'].forEach((k) => local.write(k, k === 'progress' ? {} : []));
+    toast('Demo reset');
+    route();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+  if (!['ArrowDown', 'ArrowUp'].includes(e.key) || document.body.classList.contains('has-modal')) return;
+  const reel = $('#reel');
+  if (!reel) return;
+  e.preventDefault();
+  reel.scrollBy({ top: (e.key === 'ArrowDown' ? 1 : -1) * reel.clientHeight, behavior: 'smooth' });
+});
+
+// Botones de membresia (en la pagina del canal y en el modal): unirse, cambiar de nivel o cancelar.
+document.addEventListener('click', (e) => {
+  const tierBtn = e.target.closest('[data-tier]');
+  if (tierBtn) joinTier(tierBtn.dataset.channel, tierBtn.dataset.tier);
+  const cancelBtn = e.target.closest('[data-cancel]');
+  if (cancelBtn) cancelTier(cancelBtn.dataset.cancel);
+});
+
+// Los links internos (#/...) cambian la ruta en memoria.
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[href^="#/"]');
+  if (!link) return;
+  e.preventDefault();
+  go(link.getAttribute('href'));
+});
+
+const [{ data: catalog }, { data: me }] = await Promise.all([api('/api/catalog'), api('/api/me')]);
+state.catalog = catalog;
+// Cada episodio sabe de que serie y canal es (los candados y el feed lo necesitan).
+for (const s of catalog.series) {
+  for (const ep of s.episodes) {
+    Object.assign(ep, { seriesId: s.id, channelId: s.channelId });
+    state.episodes.set(ep.id, ep);
+  }
+}
+setMe(me);
+route();
+
+</script>
+</body>
+</html>
