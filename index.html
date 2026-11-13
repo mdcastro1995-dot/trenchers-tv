@@ -732,6 +732,30 @@ img.ch-avatar { object-fit: cover; background: var(--surface-2); }
 .tier-help { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
 .st-trench { padding: 0 12px; font-size: 12px; font-style: normal; font-weight: 600; color: var(--muted); white-space: nowrap; }
 
+/* Wallets de Solana */
+.sol-dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; background: linear-gradient(135deg, #9945ff, #14f195); vertical-align: -1px; }
+.wallet-btn { display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 10px; }
+.wallet-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 6px 0 4px; }
+.wallet-row .link-btn { margin: 0; }
+.wallet-addr { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 4px; background: var(--surface-2); font: 600 13px/1 var(--font); font-variant-numeric: tabular-nums; }
+.wallet-list { display: flex; flex-direction: column; gap: 8px; }
+.wallet-opt { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 6px; background: var(--surface-2); font-size: 15px; text-align: left; }
+.wallet-opt span { font-size: 13px; color: var(--muted); }
+.wallet-opt:not(.off) span { color: #14f195; }
+.wallet-opt:hover { background: #2a2a2a; }
+.wallet-opt.off b { color: var(--soft); }
+.wallet-opt.busy, .sol-card.busy { opacity: .5; pointer-events: none; }
+.sol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.sol-card { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 6px; background: var(--surface-2); text-align: left; }
+.sol-card b { font-size: 15px; }
+.sol-card span { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sol-card:hover { background: #2a2a2a; }
+.store .sub a { text-decoration: underline; }
+.st-payout { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 24px; padding: 14px 16px; border-radius: 6px; background: var(--surface); }
+.st-payout div { display: flex; flex-direction: column; gap: 3px; }
+.st-payout b { font-size: 14px; }
+.st-payout span { font-size: 13px; color: var(--muted); }
+
 </style>
 </head>
 <body>
@@ -767,6 +791,10 @@ img.ch-avatar { object-fit: cover; background: var(--surface-2); }
 const EMBEDS_ALLOWED = true;
 // Creator Studio (perfil, proyectos y subida de videos): necesita el servidor. El build sin servidor lo apaga.
 const STUDIO_ENABLED = false;
+// Wallets de Solana (entrar, vincular, cobro del creador, pagos de prueba en devnet): tambien necesitan el servidor.
+const WALLET_ENABLED = false;
+const walletLib = () => import('./wallet.js');
+const shortAddr = (a) => `${a.slice(0, 4)}…${a.slice(-4)}`;
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const view = $('#view');
@@ -847,7 +875,8 @@ function createRules(catalog) {
   function me(user) {
     if (!user) return { user: null, coins: 0, vip: false, vipUntil: null, unlocked: [], follows: [], memberships: {}, memberPay: {}, feedUnseen: 0 };
     return {
-      user: { email: user.email, demo: user.email === DEMO_EMAIL }, coins: user.coins, vip: isVip(user), vipUntil: user.vipUntil || null,
+      // label: lo que se muestra de la cuenta (el email, o la wallet acortada si entro con la wallet).
+      user: { email: user.email || null, wallet: user.wallet || null, label: user.email || `${user.wallet.slice(0, 4)}…${user.wallet.slice(-4)}`, demo: user.email === DEMO_EMAIL }, coins: user.coins, vip: isVip(user), vipUntil: user.vipUntil || null,
       unlocked: user.unlocked, follows: user.follows, memberships: user.memberships, memberPay: user.memberPay || {},
       feedUnseen: feedOf(user).filter((i) => i.isNew).length,
     };
@@ -1036,7 +1065,7 @@ function setMe(me) {
   badge.textContent = me.feedUnseen > 9 ? '9+' : String(me.feedUnseen || '');
   const account = $('#account-btn');
   account.classList.toggle('signed-in', !!me.user);
-  account.textContent = me.user ? me.user.email[0].toUpperCase() : 'Start demo';
+  account.textContent = me.user ? me.user.label[0].toUpperCase() : 'Start demo';
   account.setAttribute('aria-label', me.user ? 'Demo account' : 'Start demo');
   document.dispatchEvent(new CustomEvent('me-changed'));
 }
@@ -2063,11 +2092,27 @@ function openStore({ episode = null, series = null } = {}) {
             <span class="coin-price">${fmtPrice(p.price)}</span>
           </button>`).join('')}
       </div>
+      ${WALLET_ENABLED ? `
+        <h4>Pay with SOL <span class="chip hot">Devnet test</span></h4>
+        <p class="sub">${state.me.user.wallet
+          ? `Uses free devnet SOL from ${esc(shortAddr(state.me.user.wallet))}: no real money moves. Get test SOL at <a href="https://faucet.solana.com" target="_blank" rel="noopener">faucet.solana.com</a>.`
+          : 'Connect a Solana wallet to pay with free devnet SOL. No real money moves.'}</p>
+        ${state.me.user.wallet ? `<div class="sol-grid" data-sol-grid><p class="sub">Loading devnet prices…</p></div>` : '<button class="ghost" data-wallet="link">Connect Solana wallet</button>'}` : ''}
       <p class="test-note">Test mode: no real payment is made. TRENCH are in-app credits, not a token on any chain.</p>`;
   };
 
   const box = showModal(render(), 'store');
-  const rerender = () => { box.innerHTML = render(); };
+  // Precios de los packs en SOL de devnet (los da el servidor junto con la tesoreria de prueba).
+  let payInfo = null;
+  const fillSol = async () => {
+    const grid = $('[data-sol-grid]', box);
+    if (!grid) return;
+    payInfo ||= await fetch('/api/wallet/pay-info').then((r) => r.json());
+    grid.innerHTML = payInfo.packs.map((p) => `
+      <button class="sol-card" data-sol-pack="${p.id}"><b><i class="coin"></i>${p.coins.toLocaleString('en-US')}</b><span>${(p.lamports / 1e9).toFixed(4)} SOL</span></button>`).join('');
+  };
+  const rerender = () => { box.innerHTML = render(); fillSol(); };
+  fillSol();
 
   async function spend() {
     const { status } = await api('/api/unlock', { episodeId: episode.id });
@@ -2080,6 +2125,28 @@ function openStore({ episode = null, series = null } = {}) {
     const target = e.target.closest('button');
     if (!target) return;
     if (target.dataset.action === 'spend') return spend();
+    if (target.dataset.solPack) {
+      const pack = payInfo.packs.find((p) => p.id === target.dataset.solPack);
+      const w = (await walletLib()).installed()[0];
+      if (!w) return toast('Open this page in a browser with Phantom, Solflare or Backpack.');
+      target.disabled = true;
+      target.classList.add('busy');
+      try {
+        toast('Approve the devnet transfer in your wallet…');
+        const signature = await (await walletLib()).paySol(w.id, { from: state.me.user.wallet, to: payInfo.treasury, lamports: pack.lamports, rpc: payInfo.rpc });
+        toast('Checking the transaction on devnet…');
+        const { status, data } = await api('/api/wallet/pay', { packId: pack.id, signature });
+        if (status !== 200) throw new Error(data.error);
+        toast(`+${pack.coins.toLocaleString('en-US')} TRENCH added · paid with devnet SOL`);
+        if (episode && state.me.coins >= episode.price) return spend();
+        rerender();
+      } catch (err) {
+        toast(err.message || 'The payment did not go through.');
+        target.disabled = false;
+        target.classList.remove('busy');
+      }
+      return;
+    }
     if (target.dataset.vip) {
       await api('/api/vip', { planId: target.dataset.vip }).then(({ data }) => setMe(data));
       closeModal();
@@ -2093,6 +2160,51 @@ function openStore({ episode = null, series = null } = {}) {
       // Como en la app real: si la compra vino del candado y ya alcanza, desbloquea solo.
       if (episode && state.me.coins >= episode.price) return spend();
       rerender();
+    }
+  });
+}
+
+// ---------- Wallets de Solana ----------
+// Elige la wallet instalada (o muestra donde bajarla), firma el mensaje del servidor y hace lo que pide `purpose`:
+// 'login' entra o crea la cuenta, 'link' la suma a la cuenta abierta, 'payout' es la wallet de cobro del creador.
+async function walletPicker(purpose, then = null) {
+  const lib = await walletLib();
+  const title = { login: 'Continue with a Solana wallet', link: 'Connect a Solana wallet', payout: 'Payout wallet' }[purpose];
+  const box = showModal(`
+    <div class="auth-head">
+      <img src="/icon.svg" alt="">
+      <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+    </div>
+    <h3>${title}</h3>
+    <p class="sub">${purpose === 'payout' ? 'Your earnings would be sent to this wallet. ' : ''}You'll sign a message to prove the wallet is yours. Signing doesn't move funds or cost gas.</p>
+    <div class="wallet-list">
+      ${lib.WALLETS.map((w) => w.get()
+        ? `<button class="wallet-opt" data-pick="${w.id}"><b>${w.name}</b><span>Detected</span></button>`
+        : `<a class="wallet-opt off" href="${w.url}" target="_blank" rel="noopener"><b>${w.name}</b><span>Install</span></a>`).join('')}
+    </div>
+    <p class="form-error" role="alert"></p>`, 'auth');
+  box.addEventListener('click', async (e) => {
+    const pick = e.target.closest('[data-pick]');
+    if (!pick) return;
+    const err = $('.form-error', box);
+    err.textContent = '';
+    pick.classList.add('busy');
+    try {
+      const signed = await lib.connectAndSign(pick.dataset.pick, purpose);
+      const path = { login: '/api/wallet/login', link: '/api/wallet/link', payout: '/api/wallet/payout' }[purpose];
+      const { status, data } = await api(path, { nonce: signed.nonce, signature: signed.signature });
+      if (status !== 200) throw new Error(data.error || 'Something went wrong.');
+      if (purpose !== 'payout') setMe(data);
+      closeModal();
+      if (purpose === 'login') toast(data.created ? `Welcome to the trenches · ${data.coins} free TRENCH` : `gm, ${shortAddr(signed.address)}`);
+      if (purpose === 'link') toast(`Wallet ${shortAddr(signed.address)} linked`);
+      if (purpose === 'payout') toast(`Payouts would go to ${shortAddr(signed.address)}`);
+      then?.(data);
+      if (purpose !== 'login' || !then) route();
+    } catch (ex) {
+      err.textContent = ex.code === 4001 || /reject/i.test(ex.message) ? 'You declined in the wallet.' : ex.message;
+    } finally {
+      pick.classList.remove('busy');
     }
   });
 }
@@ -2127,10 +2239,16 @@ function openAccount() {
   if (!me.user) return openAuth();
   showModal(`
     <div class="auth-head">
-      <span class="avatar">${esc(me.user.email[0].toUpperCase())}</span>
+      <span class="avatar">${esc(me.user.label[0].toUpperCase())}</span>
       <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
     </div>
-    <h3>${esc(me.user.email)}</h3>
+    <h3>${esc(me.user.label)}</h3>
+    ${WALLET_ENABLED && !me.user.demo ? `
+      <div class="wallet-row">
+        ${me.user.wallet
+          ? `<span class="wallet-addr"><i class="sol-dot"></i>${esc(shortAddr(me.user.wallet))}</span>${me.user.email ? '<button class="link-btn" data-wallet="unlink">Unlink</button>' : '<span class="st-muted">Signed in with this wallet</span>'}`
+          : '<button class="ghost" data-wallet="link">Connect Solana wallet</button>'}
+      </div>` : ''}
     ${me.user.demo ? '<span class="chip hot">Demo account</span>' : ''}
     <dl class="account-stats">
       <div><dt>TRENCH</dt><dd><i class="coin"></i>${me.coins.toLocaleString('en-US')}</dd></div>
@@ -2211,6 +2329,12 @@ document.addEventListener('click', async (e) => {
   if (action === 'store') openStore();
   if (action === 'account') openAccount();
   if (action === 'demo-login') loginDemo();
+  const walletBtn = e.target.closest('[data-wallet]');
+  if (walletBtn?.dataset.wallet === 'link') walletPicker('link');
+  if (walletBtn?.dataset.wallet === 'unlink') {
+    const { status, data } = await api('/api/wallet/unlink', {});
+    if (status === 200) { toast('Wallet unlinked'); openAccount(); } else toast(data.error);
+  }
   if (action === 'mute') { e.stopPropagation(); toggleMute(); }
   if (action === 'logout') {
     await api('/api/auth/logout', {}).then(({ data }) => setMe(data));
@@ -2270,7 +2394,7 @@ function mountStudio(parts) {
   import('./studio.js').then((m) => {
     if (gone) return;
     mod = m.renderStudio(parts, {
-      api, state, view, $, esc, toast, openAuth, channelAvatar, fmtPrice, ICONS,
+      api, state, view, $, esc, toast, openAuth, channelAvatar, fmtPrice, ICONS, walletPicker: WALLET_ENABLED ? walletPicker : null, shortAddr,
       // Despues de publicar o cambiar algo, la app vuelve a pedir el catalogo para mostrarlo.
       refreshCatalog: async () => setCatalog((await api('/api/catalog')).data),
     });
