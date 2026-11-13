@@ -517,6 +517,221 @@ body[data-view="feed"], body[data-view="watch"] { --reel-h: 100dvh; }
   .ext-frame { top: 8px; right: 80px; bottom: 200px; border-radius: 8px; overflow: hidden; }
 }
 
+/* Canal: foto, banner, temas y links que carga el creador */
+img.ch-avatar { object-fit: cover; background: var(--surface-2); }
+.ch-banner { height: clamp(120px, 22vw, 260px); background: var(--surface) center / cover no-repeat; }
+.ch-hero.has-banner { padding-top: 20px; }
+.ch-topics { margin-top: 12px !important; }
+.ch-links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px !important; }
+.ch-links a { font-size: 14px; font-weight: 600; color: var(--soft); text-decoration: underline; }
+.empty-note { margin: 0 var(--pad); color: var(--muted); font-size: 14px; }
+.studio-entry { display: flex; flex-direction: column; gap: 4px; margin: 0 0 16px; padding: 14px 16px; border-radius: 6px; background: var(--surface-2); }
+.studio-entry b { font-size: 15px; }
+.studio-entry span { font-size: 13px; color: var(--muted); }
+.studio-entry:hover { background: #2a2a2a; }
+
+/* Creator Studio */
+.studio { max-width: 1100px; margin: 0 auto; padding: 28px var(--pad) 80px; }
+.studio.narrow { max-width: 640px; }
+.studio h1 { margin: 0; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -.8px; line-height: 1.05; }
+.studio h2 { margin: 0; font-size: 18px; font-weight: 700; }
+.st-back { display: inline-block; min-height: 20px; margin-bottom: 16px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.st-back:hover { color: var(--text); }
+.st-lead { margin: 10px 0 24px; color: var(--soft); font-size: 15px; line-height: 1.5; }
+.st-muted { color: var(--muted); font-size: 14px; }
+.st-kicker { display: block; font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--red); }
+.st-note { margin: 10px 0 0; }
+.studio-empty { max-width: 520px; margin: 60px auto; text-align: center; }
+.studio-empty p { margin: 12px 0 22px; color: var(--soft); line-height: 1.5; }
+.studio-empty.small { margin: 24px 0; max-width: none; padding: 28px; border-radius: 6px; background: var(--surface); text-align: left; }
+.studio-empty.small p { margin-top: 0; }
+.studio .primary, .studio .ghost { display: inline-block; }
+.studio a.primary { padding: 11px 18px; border-radius: 4px; font-weight: 700; font-size: 14px; }
+
+.st-form { display: flex; flex-direction: column; gap: 18px; }
+.st-form label, .st-ep-opts label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--soft); }
+.st-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), .st-form textarea, .st-ep input, .st-ep select {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 15px var(--font);
+}
+.st-form textarea { resize: vertical; line-height: 1.5; }
+.st-form input:focus, .st-form textarea:focus, .st-ep input:focus, .st-ep select:focus { outline: none; border-color: var(--muted); }
+.st-form fieldset { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px; }
+.st-form legend { margin-bottom: 8px; padding: 0; font-size: 13px; font-weight: 600; color: var(--soft); }
+.st-form small { font-weight: 500; color: var(--muted); }
+.st-prefix { display: flex; align-items: center; border: 1px solid var(--hair); border-radius: 4px; background: #000; }
+.st-prefix > i:not(.coin) { padding-left: 14px; font-style: normal; color: var(--muted); }
+.st-prefix i.coin { margin-left: 12px; }
+.st-prefix input { border: 0 !important; }
+.st-inline { flex-direction: row !important; align-items: center; }
+.st-inline input { flex: 1; }
+.st-inline { display: grid !important; grid-template-columns: 76px 1fr; }
+.st-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-chip input, .st-color input, .st-format input { position: absolute; opacity: 0; pointer-events: none; }
+.st-chip span { display: inline-block; padding: 8px 14px; border-radius: 4px; background: var(--surface-2); font-size: 14px; font-weight: 600; color: var(--soft); cursor: pointer; }
+.st-chip input:checked + span { background: #fff; color: #000; }
+.st-chip input:focus-visible + span, .st-color input:focus-visible + span, .st-format input:focus-visible + span { outline: 2px solid var(--muted); outline-offset: 2px; }
+.st-colors { display: flex; flex-wrap: wrap; gap: 10px; }
+.st-color span { display: block; width: 32px; height: 32px; border-radius: 50%; background: var(--sw); cursor: pointer; }
+.st-color input:checked + span { box-shadow: 0 0 0 3px #000, 0 0 0 5px #fff; }
+.st-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.st-formats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.st-format span { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 14px; border-radius: 6px; background: var(--surface); cursor: pointer; }
+.st-format input:checked + span { background: #fff; color: #000; }
+.st-format input:checked + span small { color: #444; }
+.st-format b { font-size: 15px; }
+.st-shape { display: block; margin-bottom: 6px; border: 2px solid currentColor; border-radius: 3px; }
+.st-shape.vertical { width: 18px; height: 30px; }
+.st-shape.horizontal { width: 40px; height: 23px; }
+
+.st-images { margin-bottom: 26px; }
+.st-banner { position: relative; height: 140px; border-radius: 6px; background: var(--surface) center / cover no-repeat; }
+.st-banner .st-file { position: absolute; right: 10px; bottom: 10px; }
+.st-avatar-row { display: flex; align-items: flex-end; gap: 14px; margin: -40px 0 0 16px; position: relative; }
+.st-avatar-row .ch-avatar { box-shadow: 0 0 0 4px #000; }
+.st-file { position: relative; cursor: pointer; }
+.st-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.st-file.ghost { padding: 9px 14px; font-size: 13px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
+.st-file.ghost:hover { background: rgba(0,0,0,.8); }
+
+.st-head { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.st-head-id { flex: 1 1 200px; }
+.st-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 160px)); gap: 8px; margin: 26px 0 0; }
+.st-stats div { padding: 14px; border-radius: 6px; background: var(--surface); }
+.st-stats dt { font-size: 12px; color: var(--muted); }
+.st-stats dd { margin: 4px 0 0; font-size: 24px; font-weight: 800; }
+.st-row-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 36px 0 14px; }
+.st-projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
+.st-project { display: flex; flex-direction: column; gap: 10px; }
+.st-poster { position: relative; display: grid; place-items: center; aspect-ratio: 2 / 3; border-radius: 6px; overflow: hidden; background: var(--surface); }
+.st-poster img { width: 100%; height: 100%; object-fit: cover; }
+.st-poster i { padding: 14px; font-size: 13px; font-style: normal; text-align: center; color: var(--muted); }
+.st-project:hover .st-poster { outline: 2px solid var(--hair); }
+.st-project-text { display: flex; flex-direction: column; gap: 3px; }
+.st-project-text b { font-size: 15px; }
+.st-project-text small { font-size: 13px; color: var(--muted); }
+.st-status { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+.st-status.published { color: var(--red); }
+
+.st-project-head { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.st-poster.big { width: 180px; flex: none; }
+.st-poster.big .st-file { position: absolute; left: 8px; right: 8px; bottom: 8px; text-align: center; }
+.st-project-main { flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; }
+.st-project-main h1 { margin-top: 2px; }
+.st-project-main .st-actions { margin-top: 10px; }
+.st-details { margin-top: 26px; padding: 22px; border-radius: 6px; background: var(--surface); }
+
+.st-drop { display: flex; flex-direction: column; gap: 6px; padding: 28px; border: 1px dashed #444; border-radius: 6px; text-align: center; cursor: pointer; }
+.st-drop:hover, .st-drop.over { border-color: var(--text); background: var(--surface); }
+.st-drop input { display: none; }
+.st-drop b { font-size: 16px; }
+.st-drop span { font-size: 13px; color: var(--muted); }
+.st-uploads { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.st-uploads:empty { display: none; }
+.st-uploads li { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 10px 12px; border-radius: 4px; background: var(--surface); font-size: 13px; }
+.st-up-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-up-state { color: var(--muted); }
+.st-uploads li.done .st-up-state { color: var(--text); }
+.st-uploads li.failed .st-up-state { color: var(--red); }
+.st-bar { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: var(--hair); overflow: hidden; }
+.st-bar i { display: block; width: 0; height: 100%; background: var(--red); transition: width .2s; }
+.st-uploads li.done .st-bar i { background: var(--text); }
+
+.st-eps { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.st-ep { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; padding: 12px; border-radius: 6px; background: var(--surface); }
+.st-ep-thumb { position: relative; width: 160px; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000; }
+.st-ep-thumb.vertical { width: 72px; aspect-ratio: 9 / 16; }
+.st-ep-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.st-ep-thumb span { position: absolute; right: 4px; bottom: 4px; padding: 1px 5px; border-radius: 3px; background: rgba(0,0,0,.7); font-size: 11px; font-weight: 600; }
+.st-ep-main { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.st-ep-top { display: flex; align-items: center; gap: 10px; }
+.st-ep-n { flex: none; width: 22px; font-weight: 800; color: var(--muted); }
+.st-ep-title { font-weight: 600 !important; }
+.st-ep-opts { display: flex; flex-wrap: wrap; gap: 10px; }
+.st-ep-opts label { flex: 1 1 130px; max-width: 220px; font-size: 12px; }
+.st-ep-opts label.hide { display: none; }
+.st-ep-opts select, .st-ep-opts input { padding: 9px 10px !important; font-size: 14px !important; }
+.st-ep-opts .st-prefix input { padding-left: 6px !important; }
+.st-ep-tools { display: flex; flex-direction: column; gap: 6px; }
+.st-ep-tools .icon-btn { margin: 0; font-size: 14px; font-weight: 700; padding: 0; }
+.st-ep-tools .icon-btn:disabled { opacity: .3; }
+.st-ep-tools .icon-btn.armed { background: var(--red); }
+.st-help { margin: 20px 0 0; max-width: 720px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.link-btn.danger { margin-top: 28px; color: var(--muted); }
+.link-btn.danger:hover, .link-btn.danger.armed { color: var(--red); }
+
+@media (max-width: 640px) {
+  .st-ep { grid-template-columns: auto 1fr; }
+  .st-ep-tools { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; }
+  .st-ep-thumb { width: 110px; }
+  .st-ep-opts label { max-width: none; }
+  .st-poster.big { width: 130px; }
+  .st-stats { grid-template-columns: repeat(3, 1fr); }
+  .st-formats { grid-template-columns: 1fr; }
+}
+
+/* Studio: panel de estadisticas */
+.st-stats.wide { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 0; }
+.st-stats small { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.st-stats dd i.coin { vertical-align: 3px; }
+.st-perf { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 8px; margin-top: 8px; }
+.st-chart { position: relative; margin: 0; padding: 16px; border-radius: 6px; background: var(--surface); }
+.st-chart figcaption { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.st-chart figcaption b { font-size: 14px; }
+.st-chart figcaption span { font-size: 12px; color: var(--muted); }
+.st-bars { display: flex; align-items: flex-end; gap: 2px; height: 120px; border-bottom: 1px solid var(--hair); }
+.st-bar-col { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; outline: none; cursor: default; }
+.st-bar-col i { display: block; width: 100%; max-width: 14px; border-radius: 4px 4px 0 0; background: var(--red); }
+.st-bar-col:hover i, .st-bar-col:focus-visible i { background: #ff6a61; }
+.st-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted); }
+.st-tip { position: absolute; top: 40px; transform: translateX(-50%); padding: 5px 8px; border-radius: 4px; background: #fff; color: #000; font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .12s; }
+.st-tip.on { opacity: 1; }
+.st-table-wrap { padding: 6px 16px; border-radius: 6px; background: var(--surface); overflow-x: auto; }
+.st-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.st-table caption { padding: 10px 0 8px; text-align: left; font-size: 14px; font-weight: 700; }
+.st-table th { padding: 6px 8px; text-align: right; font-size: 11px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); }
+.st-table td { padding: 8px; border-top: 1px solid var(--hair); text-align: right; }
+.st-table th:first-child, .st-table td:first-child { padding-left: 0; text-align: left; }
+.st-table td b { display: block; font-weight: 600; }
+.st-table td small { color: var(--muted); }
+.st-tier-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.st-tier-summary > div { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 6px; background: var(--surface); }
+.st-tier-summary b { font-size: 22px; font-weight: 800; }
+.st-tier-summary b small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.st-tier-summary .st-muted { font-size: 13px; line-height: 1.5; }
+
+/* Studio: editor de niveles */
+.st-tiers { gap: 10px; }
+.st-tier { padding: 16px !important; border-radius: 6px; background: var(--surface); gap: 14px !important; }
+.st-tier.off .st-tier-body { display: none; }
+.st-tier-head { display: flex; align-items: center; justify-content: space-between; }
+.st-tier-n { font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--soft); }
+.st-tier-body { display: flex; flex-direction: column; gap: 14px; }
+.st-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.st-switch { flex-direction: row !important; align-items: center; gap: 8px !important; cursor: pointer; }
+.st-switch input { width: 36px; height: 20px; appearance: none; border-radius: 10px; background: var(--hair); position: relative; cursor: pointer; transition: background .15s; }
+.st-switch input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.st-switch input:checked { background: var(--red); }
+.st-switch input:checked::after { transform: translateX(16px); }
+.st-switch input:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+.st-tiers .form-error { margin-top: 6px; }
+
+@media (max-width: 900px) {
+  .st-stats.wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .st-perf { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .st-two { grid-template-columns: 1fr; }
+}
+
+/* Membresias: pagar con tarjeta o con TRENCH */
+.tier-buy { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.tier-buy .primary, .tier-buy .ghost { margin: 0; padding: 10px 14px; font-size: 13px; }
+.tier-buy .ghost { display: inline-flex; align-items: center; }
+.tier-pay { font-size: 12px; color: var(--muted); }
+.tier-card .chip + .tier-pay { margin-top: -4px; }
+.tier-help { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+.st-trench { padding: 0 12px; font-size: 12px; font-style: normal; font-weight: 600; color: var(--muted); white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -550,6 +765,8 @@ body[data-view="feed"], body[data-view="watch"] { --reel-h: 100dvh; }
 // Videos de canales externos (YouTube, TikTok) con el reproductor de esa plataforma. El artefacto compartible
 // no puede incrustar otros sitios: su build pone esto en false y muestra un link en su lugar.
 const EMBEDS_ALLOWED = true;
+// Creator Studio (perfil, proyectos y subida de videos): necesita el servidor. El build sin servidor lo apaga.
+const STUDIO_ENABLED = false;
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const view = $('#view');
@@ -590,6 +807,12 @@ const CATALOG = {"mediaBase":"media/","channels":[{"id":"stonks-park","name":"ST
 
 const DEMO_EMAIL = 'demo@trenchers.test';
 const DAY = 24 * 60 * 60 * 1000;
+const MONTH = 30 * DAY;
+// Comision de la plataforma sobre lo que pagan los fans (membresias y episodios con TRENCH).
+const PLATFORM_FEE = 0.1;
+// Membresias pagadas con TRENCH: 100 TRENCH por dolar del precio del nivel ($1.99 = 199 TRENCH por mes).
+const TRENCH_PER_USD = 100;
+const tierTrench = (tier) => Math.round(tier.price * TRENCH_PER_USD);
 
 function createRules(catalog) {
   const episodes = new Map();
@@ -622,11 +845,33 @@ function createRules(catalog) {
 
   // Lo que el cliente sabe del usuario.
   function me(user) {
-    if (!user) return { user: null, coins: 0, vip: false, vipUntil: null, unlocked: [], follows: [], memberships: {}, feedUnseen: 0 };
+    if (!user) return { user: null, coins: 0, vip: false, vipUntil: null, unlocked: [], follows: [], memberships: {}, memberPay: {}, feedUnseen: 0 };
     return {
       user: { email: user.email, demo: user.email === DEMO_EMAIL }, coins: user.coins, vip: isVip(user), vipUntil: user.vipUntil || null,
-      unlocked: user.unlocked, follows: user.follows, memberships: user.memberships, feedUnseen: feedOf(user).filter((i) => i.isNew).length,
+      unlocked: user.unlocked, follows: user.follows, memberships: user.memberships, memberPay: user.memberPay || {},
+      feedUnseen: feedOf(user).filter((i) => i.isNew).length,
     };
+  }
+
+  // Renueva las membresias pagadas con TRENCH que vencieron: cobra otro mes si alcanza el saldo; si no, la membresia
+  // termina. Devuelve los cobros hechos ([{ channelId, coins }]) para quien lleve las cuentas del creador.
+  function settle(user, now = Date.now()) {
+    const charges = [];
+    if (!user?.memberPay) return charges;
+    for (const [channelId, pay] of Object.entries(user.memberPay)) {
+      if (pay.with !== 'trench' || pay.until > now) continue;
+      const tier = channel(channelId)?.tiers.find((t) => t.level === user.memberships[channelId]);
+      while (tier && pay.until <= now && user.coins >= tierTrench(tier)) {
+        user.coins -= tierTrench(tier);
+        pay.until += MONTH;
+        charges.push({ channelId, coins: tierTrench(tier) });
+      }
+      if (!tier || pay.until <= now) {
+        delete user.memberships[channelId];
+        delete user.memberPay[channelId];
+      }
+    }
+    return charges;
   }
 
   // Respuesta a "quiero ver este episodio": [estado HTTP, cuerpo]. 200 trae el video (o el id en su plataforma);
@@ -659,17 +904,29 @@ function createRules(catalog) {
       if (follow) user.follows.push(channelId);
       return [200, me(user)];
     },
-    // Membresia simulada: fija el nivel del usuario en el canal (tierId null la cancela). Unirse tambien sigue al canal.
-    membership(user, { channelId, tierId }) {
+    // Membresia: fija el nivel del usuario en el canal (tierId null la cancela). Unirse tambien sigue al canal.
+    // pay 'card' es un pago simulado que se renueva solo; pay 'trench' cobra el mes en TRENCH ahora y se renueva
+    // con el saldo cada 30 dias (settle). Cambiar de nivel con TRENCH cobra el mes del nivel nuevo.
+    membership(user, { channelId, tierId, pay = 'card' }) {
       const c = channel(channelId);
       if (!c) return [404, { error: 'Channel not found' }];
       const tier = c.tiers.find((t) => t.id === tierId);
       if (tierId && !tier) return [404, { error: 'Tier not found' }];
+      user.memberPay ||= {};
       if (tier) {
+        if (pay === 'trench') {
+          const cost = tierTrench(tier);
+          if (user.coins < cost) return [402, { error: 'Not enough TRENCH', need: cost, balance: user.coins, me: me(user) }];
+          user.coins -= cost;
+          user.memberPay[c.id] = { with: 'trench', until: Date.now() + MONTH };
+        } else {
+          user.memberPay[c.id] = { with: 'card', until: null };
+        }
         user.memberships[c.id] = tier.level;
         if (!user.follows.includes(c.id)) user.follows.push(c.id);
       } else {
         delete user.memberships[c.id];
+        delete user.memberPay[c.id];
       }
       return [200, me(user)];
     },
@@ -692,7 +949,7 @@ function createRules(catalog) {
     // Solo para la demo: el usuario de ejemplo vuelve a su estado de ejemplo; los demas al saldo inicial.
     reset(user) {
       if (user.email === DEMO_EMAIL) seedDemo(user);
-      else Object.assign(user, { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], memberships: {} });
+      else Object.assign(user, { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], memberships: {}, memberPay: {} });
       return [200, me(user)];
     },
   };
@@ -705,16 +962,17 @@ function createRules(catalog) {
       unlocked: [],
       follows: catalog.channels.map((c) => c.id),
       memberships: { [catalog.channels[0].id]: 2 },
+      memberPay: { [catalog.channels[0].id]: { with: 'card', until: null } },
       feedSeenAt: Date.now() - 10 * DAY,
     });
   }
 
   // Usuario nuevo con los campos que usan las reglas.
   function newUser(fields) {
-    return { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], follows: [], memberships: {}, feedSeenAt: Date.now(), created: Date.now(), ...fields };
+    return { coins: catalog.startingCoins, vipUntil: 0, unlocked: [], follows: [], memberships: {}, memberPay: {}, feedSeenAt: Date.now(), created: Date.now(), ...fields };
   }
 
-  return { episodes, canWatch, feedOf, me, play, actions, seedDemo, newUser };
+  return { episodes, canWatch, feedOf, me, play, settle, actions, seedDemo, newUser };
 }
 
 const RULES = createRules(CATALOG);
@@ -732,6 +990,11 @@ const DEMO_ACTIONS = {
   '/api/buy-coins': 'buyCoins', '/api/vip': 'vip', '/api/reset': 'reset',
 };
 function demoApi(path, body = {}) {
+  // Membresias pagadas con TRENCH que vencieron: se renuevan con el saldo o terminan, como en el servidor.
+  if (demoUser) {
+    demoUser.memberPay ||= {};
+    if (RULES.settle(demoUser).length) demoSave();
+  }
   if (path === '/api/catalog') return [200, CATALOG];
   if (path === '/api/me') return [200, RULES.me(demoUser)];
   if (path === '/api/feed') return [200, { items: RULES.feedOf(demoUser), me: RULES.me(demoUser) }];
@@ -791,6 +1054,15 @@ const channelById = (id) => state.catalog.channels.find((c) => c.id === id);
 const episodeById = (id) => state.episodes.get(id);
 const tierIn = (channelId) => state.me.memberships?.[channelId] || 0;
 const tierOfLevel = (c, level) => c.tiers.find((t) => t.level === level);
+// Precio mensual de un nivel en TRENCH: 100 TRENCH por dolar (la misma cuenta que hace el servidor en rules.mjs).
+const trenchOfTier = (t) => Math.round(t.price * 100);
+const shortDate = (ts) => new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+// Como paga el usuario su membresia en un canal, en una linea.
+function payLine(channelId) {
+  const pay = state.me.memberPay?.[channelId];
+  if (pay?.with === 'trench') return `Paid with TRENCH · renews ${shortDate(pay.until)}`;
+  return 'Paid by card · renews monthly';
+}
 // Misma regla que el servidor: los episodios de miembros solo los abre la membresia del canal.
 function isUnlocked(ep) {
   if (ep.access === 'free') return true;
@@ -806,8 +1078,9 @@ function ago(ts) {
   if (days < 30) return `${days} days ago`;
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
-// Sello redondo con las iniciales y el color del canal.
+// Sello redondo: la foto del canal si la subio su creador; si no, las iniciales con el color del canal.
 function channelAvatar(c, size = '') {
+  if (c.avatar) return `<img class="ch-avatar ${size}" src="${c.avatar}" alt="">`;
   const initials = c.name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
   return `<span class="ch-avatar ${size}" style="--ch:${c.color}">${initials}</span>`;
 }
@@ -1562,10 +1835,14 @@ function tiersHtml(c, minTier = 0) {
           <span class="tier-name">${esc(t.name)}</span>
           <b>${fmtPrice(t.price)}<small>/month</small></b>
           <ul>${t.perks.map((perk) => `<li>${esc(perk)}</li>`).join('')}</ul>
-          ${t.level === current ? '<span class="chip">Your tier</span>'
-            : `<button class="primary" data-tier="${t.id}" data-channel="${c.id}">${current ? (t.level > current ? 'Upgrade' : 'Switch') : 'Join'}</button>`}
+          ${t.level === current ? `<span class="chip">Your tier</span><span class="tier-pay">${payLine(c.id)}</span>` : `
+            <div class="tier-buy">
+              <button class="primary" data-tier="${t.id}" data-channel="${c.id}" data-pay="card">${current ? (t.level > current ? 'Upgrade' : 'Switch') : 'Join'} · ${fmtPrice(t.price)}</button>
+              <button class="ghost" data-tier="${t.id}" data-channel="${c.id}" data-pay="trench"><i class="coin"></i>${trenchOfTier(t).toLocaleString('en-US')} TRENCH</button>
+            </div>`}
         </div>`).join('')}
     </div>
+    <p class="tier-help">Pay by card or with TRENCH. TRENCH memberships renew every 30 days from your balance and end if it runs out.</p>
     ${current ? `<button class="link-btn" data-cancel="${c.id}">Cancel membership</button>` : ''}
     <p class="test-note">${c.external
       ? 'Example channel: this demo makes no payment and nothing reaches the creator.'
@@ -1593,17 +1870,21 @@ function openMembership(c, { episode = null } = {}) {
     <a class="link-btn" href="#/channel/${c.id}">Open the channel</a>`, 'store');
 }
 
-async function joinTier(channelId, tierId) {
+async function joinTier(channelId, tierId, pay = 'card') {
   const c = channelById(channelId);
   const tier = c.tiers.find((t) => t.id === tierId);
   if (!state.me.user) {
-    return openAuth({ reason: `Start the demo to join ${c.name} as ${tier.name}.`, then: () => joinTier(channelId, tierId) });
+    return openAuth({ reason: `Start the demo to join ${c.name} as ${tier.name}.`, then: () => joinTier(channelId, tierId, pay) });
   }
-  const { status, data } = await api('/api/membership', { channelId, tierId });
+  const { status, data } = await api('/api/membership', { channelId, tierId, pay });
+  if (status === 402) {
+    toast(`${tier.name} costs ${data.need} TRENCH a month. You have ${data.balance}.`);
+    return openStore();
+  }
   if (status !== 200) return toast('Could not join right now. Try again.');
   setMe(data);
   if (document.querySelector('.modal.store')) closeModal();
-  toast(`You're a ${tier.name} member of ${c.name}`);
+  toast(pay === 'trench' ? `You're a ${tier.name} member of ${c.name} · ${trenchOfTier(tier)} TRENCH paid` : `You're a ${tier.name} member of ${c.name}`);
 }
 
 async function cancelTier(channelId) {
@@ -1628,26 +1909,34 @@ function renderChannel(channelId) {
   const membersEps = shows.flatMap((s) => s.episodes.filter((ep) => ep.access === 'members').map((ep) => [s, ep]));
   view.innerHTML = `
     <section class="channel-page" style="--accent:${c.color}">
-      <div class="ch-hero">
+      ${c.banner ? `<div class="ch-banner" style="background-image:url('${c.banner}')"></div>` : ''}
+      <div class="ch-hero ${c.banner ? 'has-banner' : ''}">
         ${channelAvatar(c, 'xl')}
         <div class="ch-id">
           <h1>${esc(c.name)}</h1>
           <span class="ch-handle">${esc(c.handle)}</span>
           <p>${esc(c.about)}</p>
+          ${c.topics?.length ? `<p class="ch-topics">${c.topics.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</p>` : ''}
+          ${c.links && Object.keys(c.links).length ? `<p class="ch-links">${Object.entries(c.links).map(([k, url]) => `<a href="${esc(url)}" target="_blank" rel="noopener">${({ x: 'X', tiktok: 'TikTok', youtube: 'YouTube', website: 'Website' })[k]}</a>`).join('')}</p>` : ''}
           ${c.external ? `<p class="ext-note">Example channel, not affiliated. Videos play from ${c.external.platform}. <a href="${c.external.url}" target="_blank" rel="noopener">Open on ${c.external.platform}</a></p>` : ''}
         </div>
         <div class="ch-actions" id="ch-actions"></div>
       </div>
       <h3 class="shelf-title">Shows</h3>
-      <div class="shelf">${shows.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>
+      ${shows.length ? `<div class="shelf">${shows.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>` : '<p class="empty-note">No shows yet.</p>'}
       <h3 class="shelf-title" id="membership">Membership</h3>
       <div class="tier-host" id="tier-host"></div>
       ${membersEps.length ? '<h3 class="shelf-title">Members only</h3><div class="shelf" id="members-shelf"></div>' : ''}
     </section>`;
+  // Si el canal es del creador que esta mirando, en vez de seguir y unirse ve el acceso a su Studio.
+  let mine = false;
+  if (STUDIO_ENABLED && c.creator && state.me.user) {
+    fetch('/api/studio').then((r) => r.json()).then((d) => { mine = d.channel?.id === c.id; if (mine) refresh(); }).catch(() => {});
+  }
   const refresh = () => {
     const following = state.me.follows.includes(c.id);
     const tier = tierIn(c.id);
-    $('#ch-actions').innerHTML = `
+    $('#ch-actions').innerHTML = mine ? '<a class="ghost" href="#/studio">Open Creator Studio</a>' : `
       <button class="ghost" data-ch="follow">${following ? 'Following' : 'Follow'}</button>
       ${tier ? `<span class="chip member-chip">${esc(tierOfLevel(c, tier).name)} member</span>` : '<button class="primary join" data-ch="join">Join</button>'}`;
     $('#tier-host').innerHTML = tiersHtml(c);
@@ -1852,10 +2141,13 @@ function openAccount() {
       <h4>Memberships</h4>
       ${Object.keys(me.memberships).length ? Object.entries(me.memberships).map(([id, level]) => {
         const c = channelById(id);
-        return `<a class="ch-row" href="#/channel/${id}">${channelAvatar(c, 'sm')}<span><b>${esc(c.name)}</b><small>${esc(tierOfLevel(c, level).name)} · ${fmtPrice(tierOfLevel(c, level).price)}/month</small></span></a>`;
+        const t = tierOfLevel(c, level);
+        const byTrench = me.memberPay?.[id]?.with === 'trench';
+        return `<a class="ch-row" href="#/channel/${id}">${channelAvatar(c, 'sm')}<span><b>${esc(c.name)}</b><small>${esc(t.name)} · ${byTrench ? `${trenchOfTier(t)} TRENCH` : fmtPrice(t.price)}/month · ${byTrench ? `renews ${shortDate(me.memberPay[id].until)}` : 'card'}</small></span></a>`;
       }).join('') : '<p class="sub">No memberships yet. Join a channel from its page.</p>'}
       <p class="sub">Following ${me.follows.length} channel${me.follows.length === 1 ? '' : 's'} · <a href="#/feed">Open your feed</a></p>
     </div>
+    ${STUDIO_ENABLED && !me.user.demo ? '<a class="studio-entry" href="#/studio"><b>Creator Studio</b><span>Set up your channel, upload episodes and price them.</span></a>' : ''}
     <div class="account-actions">
       <button class="primary" data-action="store">Buy TRENCH</button>
       <button class="ghost" data-action="reset">Reset demo</button>
@@ -1900,6 +2192,9 @@ function route() {
   } else if (parts[0] === 'discover') {
     tab = 'discover';
     renderDiscover();
+  } else if (parts[0] === 'studio' && STUDIO_ENABLED) {
+    tab = 'studio';
+    current = mountStudio(parts.slice(1));
   } else {
     current = renderFeed();
   }
@@ -1942,7 +2237,7 @@ document.addEventListener('keydown', (e) => {
 // Botones de membresia (en la pagina del canal y en el modal): unirse, cambiar de nivel o cancelar.
 document.addEventListener('click', (e) => {
   const tierBtn = e.target.closest('[data-tier]');
-  if (tierBtn) joinTier(tierBtn.dataset.channel, tierBtn.dataset.tier);
+  if (tierBtn) joinTier(tierBtn.dataset.channel, tierBtn.dataset.tier, tierBtn.dataset.pay);
   const cancelBtn = e.target.closest('[data-cancel]');
   if (cancelBtn) cancelTier(cancelBtn.dataset.cancel);
 });
@@ -1955,15 +2250,36 @@ document.addEventListener('click', (e) => {
   go(link.getAttribute('href'));
 });
 
-const [{ data: catalog }, { data: me }] = await Promise.all([api('/api/catalog'), api('/api/me')]);
-state.catalog = catalog;
-// Cada episodio sabe de que serie y canal es (los candados y el feed lo necesitan).
-for (const s of catalog.series) {
-  for (const ep of s.episodes) {
-    Object.assign(ep, { seriesId: s.id, channelId: s.channelId });
-    state.episodes.set(ep.id, ep);
+function setCatalog(catalog) {
+  state.catalog = catalog;
+  state.episodes = new Map();
+  // Cada episodio sabe de que serie y canal es (los candados y el feed lo necesitan).
+  for (const s of catalog.series) {
+    for (const ep of s.episodes) {
+      Object.assign(ep, { seriesId: s.id, channelId: s.channelId });
+      state.episodes.set(ep.id, ep);
+    }
   }
 }
+
+// El Studio vive en su propio archivo y se carga recien cuando se abre. Recibe lo que necesita de la app.
+function mountStudio(parts) {
+  let mod = null;
+  let gone = false;
+  view.innerHTML = '<section class="studio"><p class="empty-note">Loading Creator Studio…</p></section>';
+  import('./studio.js').then((m) => {
+    if (gone) return;
+    mod = m.renderStudio(parts, {
+      api, state, view, $, esc, toast, openAuth, channelAvatar, fmtPrice, ICONS,
+      // Despues de publicar o cambiar algo, la app vuelve a pedir el catalogo para mostrarlo.
+      refreshCatalog: async () => setCatalog((await api('/api/catalog')).data),
+    });
+  });
+  return { destroy() { gone = true; mod?.destroy?.(); } };
+}
+
+const [{ data: catalog }, { data: me }] = await Promise.all([api('/api/catalog'), api('/api/me')]);
+setCatalog(catalog);
 setMe(me);
 route();
 
