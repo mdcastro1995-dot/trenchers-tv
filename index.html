@@ -756,6 +756,56 @@ img.ch-avatar { object-fit: cover; background: var(--surface-2); }
 .st-payout b { font-size: 14px; }
 .st-payout span { font-size: 13px; color: var(--muted); }
 
+/* Comentarios */
+.comments-sheet .cm-host { margin-top: 6px; }
+.cm-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.cm-head b { font-size: 16px; }
+.cm-head span { color: var(--muted); font-size: 14px; }
+.cm-form { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 14px; }
+.cm-form textarea { flex: 1; min-height: 42px; max-height: 140px; padding: 11px 12px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 15px/1.4 var(--font); resize: none; }
+.cm-form textarea:focus { outline: none; border-color: var(--muted); }
+.cm-form .primary { padding: 11px 16px; }
+.cm-login { margin-bottom: 14px; }
+.cm-locked, .cm-empty { margin: 4px 0 10px; color: var(--muted); font-size: 14px; }
+.cm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.cm { display: flex; gap: 10px; }
+.cm-avatar { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--ch, var(--surface-2)); color: #000; font-size: 13px; font-weight: 800; object-fit: cover; }
+span.cm-avatar:not([style*="--ch"]) { color: var(--soft); }
+.cm-avatar.wallet { background: linear-gradient(135deg, #9945ff, #14f195); color: #000; }
+.cm-body { min-width: 0; flex: 1; }
+.cm-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+.cm-meta span { color: var(--muted); }
+.cm-badge { padding: 1px 6px; border-radius: 3px; background: var(--red); color: #fff !important; font-size: 11px; font-weight: 700; }
+.cm-body p { margin: 4px 0 6px; font-size: 14px; line-height: 1.45; color: var(--soft); white-space: pre-wrap; overflow-wrap: anywhere; }
+.cm-actions { display: flex; gap: 14px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.cm-actions button:hover { color: var(--text); }
+.cm-like.on { color: var(--red); }
+.tv-comments { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--hair); }
+.modal.comments-sheet { max-height: 80vh; overflow-y: auto; }
+
+/* Posts del canal */
+.post-host { margin: 0 var(--pad); max-width: 680px; }
+.post-list, .st-posts { display: flex; flex-direction: column; gap: 10px; }
+.post { padding: 16px 18px; border-radius: 6px; background: var(--surface); }
+.post-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+.post-head .link-btn { margin: 0 0 0 auto; font-size: 12px; }
+.post-tier { font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--red); }
+.post-tier.public { color: var(--muted); }
+.post-text { margin: 10px 0 0; font-size: 15px; line-height: 1.55; color: var(--soft); white-space: pre-wrap; overflow-wrap: anywhere; }
+.post-img { display: block; width: 100%; max-height: 520px; margin-top: 12px; border-radius: 4px; object-fit: cover; }
+.post.locked .post-veil { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 12px; }
+.post-lines { display: flex; flex-direction: column; gap: 7px; width: 100%; }
+.post-lines i { display: block; height: 10px; width: 100%; border-radius: 3px; background: var(--surface-2); }
+.post-veil p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.post-veil .primary { padding: 9px 14px; font-size: 13px; }
+.st-composer { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 6px; background: var(--surface); margin-bottom: 10px; }
+.st-composer textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 15px/1.5 var(--font); resize: vertical; }
+.st-composer textarea:focus { outline: none; border-color: var(--muted); }
+.st-composer-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.st-composer-bar .st-file.ghost { background: rgba(255,255,255,.12); }
+.st-composer-bar select { margin-left: auto; padding: 10px; border: 1px solid var(--hair); border-radius: 4px; background: #000; color: var(--text); font: 500 14px var(--font); }
+.st-composer-img { font-size: 12px; color: var(--muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -794,6 +844,10 @@ const STUDIO_ENABLED = false;
 // Wallets de Solana (entrar, vincular, cobro del creador, pagos de prueba en devnet): tambien necesitan el servidor.
 const WALLET_ENABLED = false;
 const walletLib = () => import('./wallet.js');
+// Comentarios y posts: los guarda el servidor, asi que van con el Studio.
+const SOCIAL_ENABLED = STUDIO_ENABLED;
+const socialLib = () => import('./social.js');
+const socialApp = () => ({ api, esc, toast, openAuth, state });
 const shortAddr = (a) => `${a.slice(0, 4)}…${a.slice(-4)}`;
 
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -1208,6 +1262,7 @@ const ICONS = {
   full: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  comment: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>',
 };
 
 // ---------- Reproductor vertical (lo usan el feed y la pagina de episodio) ----------
@@ -1309,7 +1364,7 @@ function renderFeed() {
               <p class="synopsis">${esc(s.synopsis)}</p>
               <a class="watch-btn" href="#/watch/${s.id}/${resumeEpisode(s)}">${ICONS.play}<span>${resumeEpisode(s) > 1 ? `Continue Ep. ${resumeEpisode(s)}` : 'Play'}</span></a>
             </div>
-            ${railHtml(s)}
+            ${railHtml(s, { epId: s.episodes[0].id })}
           </article>`).join('')}
       </div>
     </section>`;
@@ -1328,13 +1383,14 @@ function renderFeed() {
   return reelCtl;
 }
 
-function railHtml(s, { episodesButton = true } = {}) {
+function railHtml(s, { episodesButton = true, epId = null } = {}) {
   const liked = local.read('liked', []).includes(s.id);
   const saved = local.read('mylist', []).includes(s.id);
   return `
     <div class="rail">
       <button class="rail-btn ${liked ? 'on' : ''}" data-action="like" data-series="${s.id}">${ICONS.heart}<span>${liked ? 'Bullish' : 'Bullish?'}</span></button>
       <button class="rail-btn ${saved ? 'on' : ''}" data-action="save" data-series="${s.id}">${ICONS.bookmark}<span>${saved ? 'Watching' : 'Watchlist'}</span></button>
+      ${SOCIAL_ENABLED && epId ? `<button class="rail-btn" data-action="comments" data-ep="${epId}">${ICONS.comment}<span>Comments</span></button>` : ''}
       ${episodesButton ? `<button class="rail-btn" data-action="episodes" data-series="${s.id}">${ICONS.list}<span>Episodes</span></button>` : ''}
       <button class="rail-btn mute-btn" data-action="mute"></button>
     </div>`;
@@ -1356,7 +1412,21 @@ function wireRail(root) {
       if (action === 'save') toast(on ? 'Added to Watchlist' : 'Removed from Watchlist');
     }
     if (action === 'episodes') openEpisodeSheet(seriesById(series));
+    if (action === 'comments') openComments(btn.dataset.ep);
   });
+}
+
+// Comentarios de un episodio en una hoja que sube desde abajo (Reels).
+async function openComments(epId) {
+  const ep = episodeById(epId);
+  const s = seriesById(ep.seriesId);
+  const box = showModal(`
+    <div class="sheet-head">
+      <div><b>${esc(s.title)}</b><span>${(ep.platform || ep.named) ? esc(ep.title) : `Episode ${ep.n}`}</span></div>
+      <button class="icon-btn" data-action="close" aria-label="Close">${ICONS.close}</button>
+    </div>
+    <div class="cm-host"></div>`, 'sheet comments-sheet');
+  (await socialLib()).mountComments($('.cm-host', box), epId, socialApp());
 }
 
 function resumeEpisode(s) {
@@ -1438,7 +1508,7 @@ function renderWatch(seriesId, startN) {
               ${byLine(s)}
               <p class="ep-line">${(ep.platform || ep.named) ? `${ep.n}. ${esc(ep.title)}` : `Episode ${ep.n} / ${s.episodes.length}`}</p>
             </div>
-            ${railHtml(s)}
+            ${railHtml(s, { epId: ep.id })}
           </article>`).join('')}
       </div>
       <aside class="side-panel">
@@ -1766,6 +1836,7 @@ function renderTvWatch(showId, startN) {
           <p class="synopsis">${esc(s.synopsis)}</p>
           ${c.external ? `<p class="ext-note">Example channel, not affiliated with ${esc(c.name)}. Episodes play from ${c.external.platform}. <a href="${c.external.url}" target="_blank" rel="noopener">Open the channel on ${c.external.platform}</a></p>` : ''}
         </div>
+        ${SOCIAL_ENABLED ? '<section class="tv-comments" id="tv-comments"></section>' : ''}
       </div>
       <aside class="tv-list">
         <div class="tv-list-head"><b>Episodes</b><span class="grid-note">${c.external ? `Free on ${c.external.platform}` : `${free} free · then <i class="coin"></i>${state.catalog.episodePrice} each`}</span></div>
@@ -1774,6 +1845,7 @@ function renderTvWatch(showId, startN) {
     </section>`;
 
   let currentN = startN;
+  let comments = null;
   const listEl = $('#tv-eps');
   const playerEl = $('.tv-player', view);
 
@@ -1799,6 +1871,12 @@ function renderTvWatch(showId, startN) {
     progress[s.id] = n;
     local.write('progress', progress);
     refresh();
+    // Comentarios del episodio que se esta viendo.
+    if (SOCIAL_ENABLED) {
+      comments?.destroy();
+      const host = $('#tv-comments');
+      socialLib().then((m) => { if (currentN === n && host.isConnected) comments = m.mountComments(host, ep.id, socialApp()); });
+    }
     player.stop();
     const { status, data } = await api(`/api/play/${ep.id}`);
     if (currentN !== n) return;
@@ -1836,6 +1914,7 @@ function renderTvWatch(showId, startN) {
   return {
     destroy() {
       player.video.pause();
+      comments?.destroy();
       document.removeEventListener('me-changed', onMe);
     },
   };
@@ -1953,6 +2032,7 @@ function renderChannel(channelId) {
       </div>
       <h3 class="shelf-title">Shows</h3>
       ${shows.length ? `<div class="shelf">${shows.map((s) => cardHtml(s, `${s.episodes.length} eps`)).join('')}</div>` : '<p class="empty-note">No shows yet.</p>'}
+      ${SOCIAL_ENABLED && c.creator ? '<h3 class="shelf-title">Posts</h3><div class="post-host" id="ch-posts"></div>' : ''}
       <h3 class="shelf-title" id="membership">Membership</h3>
       <div class="tier-host" id="tier-host"></div>
       ${membersEps.length ? '<h3 class="shelf-title">Members only</h3><div class="shelf" id="members-shelf"></div>' : ''}
@@ -1969,6 +2049,8 @@ function renderChannel(channelId) {
       <button class="ghost" data-ch="follow">${following ? 'Following' : 'Follow'}</button>
       ${tier ? `<span class="chip member-chip">${esc(tierOfLevel(c, tier).name)} member</span>` : '<button class="primary join" data-ch="join">Join</button>'}`;
     $('#tier-host').innerHTML = tiersHtml(c);
+    // Los posts dependen del nivel de membresia: se vuelven a pedir cuando cambia.
+    if ($('#ch-posts')) socialLib().then((m) => m.mountPosts($('#ch-posts'), c, socialApp()));
     if (membersEps.length) $('#members-shelf').innerHTML = membersEps.map(([s, ep]) => episodeCardHtml(s, ep)).join('');
   };
   view.addEventListener('click', onClick);
